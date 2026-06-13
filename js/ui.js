@@ -120,7 +120,7 @@ const UI = (() => {
   }
 
   /* ---------------- pause ---------------- */
-  const PAUSE_OPTS = ["KEEP DREAMING", "RESTART THIS DREAM", "WAKE UP (HOME)", "MUTE MUSIC", "ERASE ALL DREAMS"];
+  const PAUSE_OPTS = ["KEEP DREAMING", "RESTART THIS DREAM", "WORLD MAP", "MUTE MUSIC", "ERASE ALL DREAMS"];
   function drawPause() {
     ctx.fillStyle = "rgba(12,10,20,0.6)"; ctx.fillRect(0, 0, T.VIEW_W, T.VIEW_H);
     ctx.textAlign = "center";

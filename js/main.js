@@ -24,8 +24,12 @@ const Game = {
     if (want) {
       save.unlocked = 6;
       this.newRun();
-      await this.enterLevel(want === "hub" ? "hub" : parseInt(want));
-      this.iris = 0; this.toast = 0;          // dev drop-in: no wipe, no toast
+      if (want === "map") {
+        this.toMap(1);
+      } else {
+        await this.enterLevel(want === "hub" ? "hub" : parseInt(want));
+        this.iris = 0; this.toast = 0;        // dev drop-in: no wipe, no toast
+      }
     } else {
       this.state = "title";
     }
@@ -45,7 +49,11 @@ const Game = {
   },
   afterStore() {
     if (this.levelId === 6) this.state = "scores";
-    else this.enterLevel("hub");
+    else this.toMap(this.levelId);
+  },
+  toMap(nodeId) {
+    Overworld.enter(nodeId == null ? 1 : nodeId);
+    this.state = "map"; this.iris = 0; this.toast = 0;
   },
 };
 
@@ -74,8 +82,16 @@ function update() {
     case "title":
       if (menuPad.pressed.has("confirm")) {
         Game.newRun();
-        Game.enterLevel("hub");
+        Game.toMap(1);
       }
+      break;
+
+    case "map":
+      Overworld.update();
+      break;
+
+    case "trophy":
+      Overworld.updateTrophy();
       break;
 
     case "play": {
@@ -105,7 +121,7 @@ function update() {
       if (menuPad.pressed.has("confirm")) {
         if (Game.pauseIdx === 0) Game.state = "play";
         else if (Game.pauseIdx === 1) { World.resetWorld(Game.levelId); Game.state = "play"; }
-        else if (Game.pauseIdx === 2) Game.enterLevel("hub");
+        else if (Game.pauseIdx === 2) Game.toMap(Game.levelId);
         else if (Game.pauseIdx === 3) AudioSys.toggleMute();
         else if (Game.pauseIdx === 4) {
           if (Game.confirmErase) { eraseSave(); Game.confirmErase = false; Game.state = "title"; AudioSys.playSong("title"); }
@@ -184,6 +200,8 @@ function render() {
     case "ending": UI.drawEnding(); break;
     case "credits": UI.drawCredits(); break;
     case "scores": UI.drawScores(); break;
+    case "map": Overworld.draw(); break;
+    case "trophy": Overworld.drawTrophy(); break;
     default: {                              // play / pause / chooser / dying / clear
       World.draw();
       UI.drawHUD();
