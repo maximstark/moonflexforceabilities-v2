@@ -83,6 +83,9 @@ def charmgirl_frames():
         d.ellipse([18,7+bob,28,14+bob],fill=PINKL)                                # muzzle
         d.point((22,6+bob),fill=EYE); d.point((23,6+bob),fill=EYE)
         d.arc([21,9+bob,26,12+bob],0,180,fill=PINKD)                              # smile
+        d.point((22,5+bob),fill=WHITE)                                            # eye sparkle
+        d.ellipse([18,9+bob,20,11+bob],fill=(228,104,146,255))                    # cheek blush
+        d.ellipse([16,2+bob,21,5+bob],fill=PINKL)                                 # head sheen
         for sx in (10,14,18): d.polygon([(sx,9+bob),(sx+2,5+bob),(sx+4,9+bob)],fill=PINKD)  # back spikes
         d.line([(12,18+bob),(14,20+bob)],fill=PINKD,width=1)                      # lil arm
         d.rectangle([10,24+legA,13,27],fill=PINKD)                                # legs
@@ -106,6 +109,8 @@ def trex_frames():
         hy=-2 if roar else 0
         d.ellipse([26,1+hy,50,22+hy],fill=PINK)                                   # head
         d.ellipse([34,10+hy,50,22+hy],fill=PINKL)                                  # jaw/muzzle
+        d.ellipse([14,16,26,23],fill=PINKL)                                        # cool body sheen
+        d.ellipse([28,3+hy,38,9+hy],fill=PINKL)                                    # head sheen
         if roar:
             d.polygon([(34,16+hy),(51,12+hy),(51,24+hy),(36,22+hy)],fill=PINKD)   # open mouth
             for tx in (38,43,47): d.polygon([(tx,15+hy),(tx+2,18+hy),(tx+4,15+hy)],fill=TOOTH)
@@ -150,9 +155,12 @@ def mecha_frames():
         d.ellipse([28,31,36,39],fill=CORE)                                        # power core
         d.point((31,33),fill=(255,220,240,255))
         for bx,by in [(17,22),(45,22),(17,42),(45,42)]: d.point((bx,by),fill=TRIM) # rivets
+        d.line([(19,22),(25,22)],fill=(255,255,255,255),width=1)                  # torso specular
+        d.point((22,24),fill=(255,255,255,255))
         # neck + head (armored swan)
         d.rectangle([30,6,36,20],fill=STEEL); d.line([(33,6),(33,20)],fill=STEELD,width=1)
         d.ellipse([28,0,44,12],fill=STEEL); d.ellipse([30,2,42,10],fill=STEELD)
+        d.ellipse([31,1,37,4],fill=(255,255,255,255))                             # head dome shine
         d.polygon([(42,4),(50,6),(42,9)],fill=TRIM)                               # gold beak
         d.rectangle([34,3,37,5],fill=CORE)                                        # visor eye
         d.point((35,4),fill=(255,240,250,255))

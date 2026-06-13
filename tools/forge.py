@@ -103,10 +103,14 @@ def mermaid_frames():
         d.polygon([(36,4),(40,5),(36,7)],fill=BEAK); d.point((38,5),fill=BEAKS); d.rectangle([32,3,33,4],fill=EYE)
         for ax,ay in [(0,-3),(3,0),(0,3),(-3,0)]: d.ellipse([28+ax-2,3+ay-2,28+ax+2,3+ay+2],fill=PETAL)
         d.ellipse([27,2,30,5],fill=YEL)
+        d.point((33,3),fill=EYEW)                          # eye catchlight
+        d.ellipse([30,5,32,7],fill=PETAL)                  # rosy cheek
+        d.ellipse([12,9,18,13],fill=(255,255,255,255))     # soft body sheen
     def tail(d,flick):
         pts=[(16,22),(14,28),(18,34+flick),(15,38+flick)]
         for i,(x,y) in enumerate(pts):
             r=6-i; d.ellipse([x-r,y-r,x+r,y+r],fill=MTAIL); d.arc([x-r,y-r,x+r,y+r],20,160,fill=MTAILD)
+            d.arc([x-r,y-r,x+r,y+r],200,330,fill=MFIN)     # scale sheen on top of each segment
         fy=38+flick; d.polygon([(15,fy),(7,fy+2),(13,fy-3)],fill=MFIN); d.polygon([(15,fy),(23,fy+2),(17,fy-3)],fill=MFIN)
     def mk(flick):
         im=cell(W,H);d=ImageDraw.Draw(im);tail(d,flick);upper(d);return outline(im,W,H)
