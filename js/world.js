@@ -148,7 +148,7 @@ const World = (() => {
     }
   }
   function onBossesCleared(fled) {
-    if (Game.levelId === 6) spawnTrophy("beads");
+    if (Game.levelId === T.WORLD_COUNT) spawnTrophy("beads");
     else spawnTrophy("trophy");
     if (!fled) AudioSys.playSong(level.music);
   }
@@ -158,10 +158,10 @@ const World = (() => {
       Game.score += p.carrying * T.POINTS_BABY;
       addFloater(p.x, p.y - 10, "BABIES SAFE! +" + p.carrying * T.POINTS_BABY);
     }
-    if (Game.babiesThisLevel > 0 && Game.levelId >= 1 && Game.levelId <= 5)
+    if (Game.babiesThisLevel > 0 && Game.levelId >= 1 && Game.levelId <= T.WORLD_COUNT - 1)
       save.babies[Game.levelId - 1] = true;
     if (typeof Game.levelId === "number") {
-      save.unlocked = Math.max(save.unlocked, Math.min(6, Game.levelId + 1));
+      save.unlocked = Math.max(save.unlocked, Math.min(T.WORLD_COUNT, Game.levelId + 1));
       writeSave();
     }
     Game.state = "clear"; Game.stateTimer = 130;
@@ -171,7 +171,7 @@ const World = (() => {
     AudioSys.sfx("tenmil");
     Game.shake = 10;
     addFloater(players[0].x, players[0].y - 16, "+10,000,000!!!");
-    save.unlocked = 6; writeSave();
+    save.unlocked = T.WORLD_COUNT; writeSave();
     Game.state = "ending"; Game.stateTimer = 0;
     AudioSys.playSong("ending");
   }

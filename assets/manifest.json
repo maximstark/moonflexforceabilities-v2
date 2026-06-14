@@ -410,5 +410,14 @@
       "s"
     ],
     "file": "assets/par_finale.png"
+  },
+  "wisp": {
+    "frame_w": 18,
+    "frame_h": 18,
+    "frames": [
+      "bob1",
+      "bob2"
+    ],
+    "file": "assets/wisp.png"
   }
 }

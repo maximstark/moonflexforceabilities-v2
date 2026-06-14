@@ -13,6 +13,7 @@ const ENEMY_DEFS = {
   dino:      { w: 26, h: 24, sheet: "dino",      hp: T.DINO_HP, score: 200 },
   alligator: { w: 40, h: 22, sheet: "alligator", hp: T.GATOR_HP, score: 300 },
   fish:      { w: 12, h: 8,  sheet: "fish",      hp: 1, score: 50, gentle: true },
+  wisp:      { w: 14, h: 14, sheet: "wisp",      hp: 1, score: 150 },
 };
 
 function makeEnemy(spec) {
@@ -45,7 +46,7 @@ function updateEnemies() {
     if (e.stun > 0) { e.stun--; e.vx = 0; }
     else updateEnemyBrain(e, mult);
 
-    if (e.type === "fish" || e.type === "alligator") {     // swimmers: no gravity
+    if (e.type === "fish" || e.type === "alligator" || e.type === "wisp") {  // floaters: no gravity
       e.x += e.vx; e.y += e.vy;
     } else {
       e.vy = Math.min(e.vy + T.ENEMY_GRAVITY, T.ENEMY_MAX_FALL);
@@ -116,6 +117,18 @@ function updateEnemyBrain(e, mult) {
       e.vx *= 0.9; e.vy = Math.sin(e.animTimer / 18) * 0.2;
       if (--e.timer <= 0) { e.state = "idle"; e.revealed = false; }
     }
+  } else if (e.type === "wisp") {
+    e.vy = Math.sin(e.animTimer / 16) * 0.4;             // idle drift/bob
+    if (pl) {
+      const dx = (pl.x + pl.w / 2) - (e.x + e.w / 2);
+      const dy = (pl.y + pl.h / 2) - (e.y + e.h / 2);
+      const dd = Math.hypot(dx, dy) || 1;
+      if (dd < T.WISP_RANGE) { e.vx += dx / dd * 0.05 * mult; e.vy += dy / dd * 0.05 * mult; }
+      else e.vx *= 0.95;
+    }
+    e.vx = clamp(e.vx, -T.WISP_SPEED * mult, T.WISP_SPEED * mult);
+    e.vy = clamp(e.vy, -T.WISP_SPEED * mult, T.WISP_SPEED * mult);
+    e.dir = e.vx < 0 ? -1 : 1;
   }
 }
 
@@ -316,6 +329,7 @@ function enemyFrame(e) {
   if (e.type === "fish") return (e.animTimer >> 3) % 2 ? "swim2" : "swim1";
   if (e.type === "alligator")
     return e.state === "idle" ? "catface" : e.state === "reveal" ? "reveal" : "chomp";
+  if (e.type === "wisp") return (e.animTimer >> 3) % 2 ? "bob2" : "bob1";
   return "idle";
 }
 function drawProjectiles(camX, camY) {

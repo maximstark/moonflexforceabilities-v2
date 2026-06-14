@@ -211,6 +211,7 @@ def level4():
     # gentle main path (descents and one-row rises); the sky goodies reward flapping
     v.plat(18,21,8,C); v.plat(25,27,7,C); v.plat(31,34,8,C)
     v.plat(38,40,7,C); v.plat(44,47,8,C)
+    v.enemy("wisp",27,5); v.enemy("wisp",36,4); v.enemy("wisp",45,5)  # dream-wisps drift over the void
     # candy mesa with mush-block vault (baby inside)
     v.ground(50,68,9,K,Kf,edges=False)
     v.fill(60,60,6,8,"mush_block"); v.fill(64,64,6,8,"mush_block")
@@ -338,7 +339,7 @@ def hub():
     v.set(12,3,"lantern"); v.set(13,3,"lantern")
     # elevator shaft down the middle
     v.fill(12,13,11,57,"shaft")
-    v.elevator = dict(x=11*TS+4, stops=[(fr-2)*TS for fr in FLOORS])
+    v.elevator = dict(x=12*TS+4, stops=[fr*TS for fr in FLOORS])   # car centred in shaft; stops flush with each floor
     # per-floor doors & tidy furniture (it is ALWAYS neat)
     LV = [1,2,3,4,5,6]
     for i,fr in enumerate(FLOORS):

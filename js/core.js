@@ -106,7 +106,7 @@ function drawStretched(name, frame, x, y, w, h) {
 
 /* ---------------- save data ---------------- */
 const SAVE_KEY = "mffa_save_v1";
-let save = { unlocked: 1, babies: [false,false,false,false,false], highScores: [], best: 0 };
+let save = { unlocked: 1, babies: Array(T.WORLD_COUNT - 1).fill(false), highScores: [], best: 0 };
 function loadSave() {
   try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.unlocked) save = s; }
   catch (e) { /* fresh start */ }
@@ -116,7 +116,7 @@ function writeSave() {
 }
 function eraseSave() {
   try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* ignore */ }
-  save = { unlocked: 1, babies: [false,false,false,false,false], highScores: [], best: 0 };
+  save = { unlocked: 1, babies: Array(T.WORLD_COUNT - 1).fill(false), highScores: [], best: 0 };
 }
 
 /* ---------------- helpers ---------------- */

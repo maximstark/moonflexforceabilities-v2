@@ -63,6 +63,7 @@ const TUNING = {
   ROACH_SPEED: 1.1, DINO_SPEED: 0.45, DINO_HP: 2, ENEMY_HIT_IFRAMES: 30,
   GATOR_RANGE: 56, GATOR_REVEAL: 26, GATOR_LUNGE: 2.6, GATOR_HP: 2, GATOR_REST: 80,
   FISH_SPEED: 0.7, MUSH_DMG_HAPPY: 12,
+  WISP_SPEED: 1.15, WISP_RANGE: 200,   // dream-wisp: floaty homing flyer
   STINK_RADIUS: 26, STINK_LIFE: 320, STINK_DRAIN: 0.5,
 
   // --- bosses ---
@@ -80,6 +81,9 @@ const TUNING = {
   POINTS_POPCORN: 50, POINTS_STOMP: 100, POINTS_BOSS: 5000,
   POINTS_BABY: 5000, POINTS_RESCUE: 8000, POINTS_FINALE: 10000000,
   NAME_MAX_LEN: 8,
+
+  // --- progression ---
+  WORLD_COUNT: 6,                  // number of worlds; finale = the last one
 
   // --- camera & juice ---
   CAM_LERP: 0.12, CAM_LOOKAHEAD: 24, SHAKE_FRAMES: 6,

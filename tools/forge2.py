@@ -880,12 +880,30 @@ def strip(name):
         for sx,sy in [(30,10),(80,6),(140,14),(170,4)]: d.point((sx,sy),fill=(255,220,230,255))
     return im
 
+def wisp_frames():
+    """a floating dream-wisp: bobs and drifts toward you (stompable)."""
+    W,H=18,18
+    def body(d,t):
+        d.ellipse([4,3,15,14],fill=(196,214,244,255))        # round body
+        d.ellipse([6,5,12,10],fill=(234,242,253,255))        # shine
+        d.rectangle([7,8,8,9],fill=EYE); d.rectangle([11,8,12,9],fill=EYE)   # sleepy eyes
+        d.point((7,8),fill=EYEW); d.point((11,8),fill=EYEW)
+        d.arc([8,10,12,13],10,170,fill=(120,140,180,255))    # tiny mouth
+        if t:
+            d.polygon([(5,12),(8,12),(6,17)],fill=(176,198,236,255))
+            d.polygon([(10,13),(13,13),(12,16)],fill=(176,198,236,255))
+        else:
+            d.polygon([(6,13),(9,13),(8,16)],fill=(176,198,236,255))
+            d.polygon([(11,12),(14,12),(13,17)],fill=(176,198,236,255))
+    def mk(t): im=cell(W,H); body(ImageDraw.Draw(im),t); return outline(im,W,H)
+    return (W,H,[mk(0),mk(1)],["bob1","bob2"])
+
 # =====================================================================
 #  BUILD + MANIFEST MERGE + PREVIEW
 # =====================================================================
 REGISTRY2={
  "charmgirl":charmgirl_frames,"trex":trex_frames,"mecha":mecha_frames,
- "babyswan":babyswan_frames,"alligator":alligator_frames,"fish":fish_frames,
+ "babyswan":babyswan_frames,"alligator":alligator_frames,"fish":fish_frames,"wisp":wisp_frames,
  "turtles":turtles_frames,"boss_papa":boss_papa_frames,"boss_hogdog":boss_hogdog_frames,
  "gear":gear_frames,"fx":fx_frames,"items":items_frames,
  "tiles2":tiles2_frames,"hub":hub_frames,"elevator":elevator_frames,

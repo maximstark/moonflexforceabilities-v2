@@ -102,7 +102,7 @@ const Overworld = (() => {
       ctx.beginPath(); ctx.arc(x, y, 9 + Math.sin(fr / 6), 0, Math.PI * 2); ctx.stroke();
     }
     ctx.fillStyle = "#241a30"; ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = open ? (n.id === "home" ? "#9ad0ff" : n.id === 6 ? "#ff7ab0" : "#ffd96a") : "#5a5470";
+    ctx.fillStyle = open ? (n.id === "home" ? "#9ad0ff" : n.id === T.WORLD_COUNT ? "#ff7ab0" : "#ffd96a") : "#5a5470";
     ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill();
     ctx.font = "7px monospace"; ctx.textAlign = "center"; ctx.fillStyle = "#241a30";
     ctx.fillText(n.id === "home" ? "H" : open ? String(n.id) : "×", x, y + 2);
@@ -148,8 +148,8 @@ const Overworld = (() => {
     const babies = save.babies.filter(b => b).length;
     drawFrame("babyswan", (fr >> 4) % 2 ? "bob2" : "bob1", T.VIEW_W / 2 - 78, 64);
     ctx.fillStyle = "#fff6d8"; ctx.font = "9px monospace";
-    ctx.fillText("BABY SWANS RESCUED:  " + babies + " / 5", T.VIEW_W / 2, 74);
-    if (save.unlocked >= 6) {
+    ctx.fillText("BABY SWANS RESCUED:  " + babies + " / " + (T.WORLD_COUNT - 1), T.VIEW_W / 2, 74);
+    if (save.unlocked >= T.WORLD_COUNT) {
       drawFrame("items", "beads", T.VIEW_W / 2 - 8, 90);
       ctx.fillStyle = "#ffd96a"; ctx.fillText("THE GOLD MEDAL  —  you did it!", T.VIEW_W / 2, 116);
     } else {

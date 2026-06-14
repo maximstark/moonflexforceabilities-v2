@@ -22,7 +22,7 @@ const Game = {
     const params = typeof location !== "undefined" ? new URLSearchParams(location.search) : null;
     const want = params && params.get("level");
     if (want) {
-      save.unlocked = 6;
+      save.unlocked = T.WORLD_COUNT;
       this.newRun();
       if (want === "map") {
         this.toMap(1);
@@ -48,7 +48,7 @@ const Game = {
     this.iris = 100;                       // iris back in
   },
   afterStore() {
-    if (this.levelId === 6) this.state = "scores";
+    if (this.levelId === T.WORLD_COUNT) this.state = "scores";
     else this.toMap(this.levelId);
   },
   toMap(nodeId) {
