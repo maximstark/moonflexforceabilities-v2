@@ -39,7 +39,7 @@ const Bosses = (() => {
   const badcode = (x, y) => ({
     sub: "badcode", sheet: "boss_badcode", x, y: y - 240, w: 44, h: 44,
     hp: T.BADCODE_HP, maxHp: T.BADCODE_HP, state: "sleep", timer: 0, iframes: 0,
-    hurtFlash: 0, facing: -1, vx: 0, vy: 0, dropY: y, triggerX: x - 60, animTimer: 0, rage: 1 });
+    hurtFlash: 0, facing: -1, vx: 0, vy: 0, dropY: y, triggerX: x + 60, animTimer: 0, rage: 1 });
   const grumpis = (x, y, hp, phase = 0) => ({
     sub: "grumpis", sheet: "boss_grumpis", x, y, w: 52, h: 48, vx: 0, vy: 0,
     hp, maxHp: hp, state: "windup", timer: T.GRUMPIS_WINDUP + phase, iframes: 0,
@@ -234,7 +234,7 @@ const Bosses = (() => {
   function damageBoss(b, dmg) {
     if (b.iframes > 0 || b.state === "dying" || b.fleeing) return false;
     b.hp -= dmg;
-    b.iframes = T.BOSS_IFRAMES; b.hurtFlash = T.BOSS_HURT_FLASH;
+    b.iframes = b.sub === "badcode" ? 18 : T.BOSS_IFRAMES; b.hurtFlash = T.BOSS_HURT_FLASH;
     AudioSys.sfx("bossHurt");
     World.addFloater(b.x + b.w / 2, b.y - 8, "SCRUMPTIONED!");
     if (b.hp <= 0) {

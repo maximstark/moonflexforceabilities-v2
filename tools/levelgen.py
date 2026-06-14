@@ -407,7 +407,7 @@ def level8():
         if k % 5 == 0: v.enemy("fly",sc,sr-4)
         if k % 4 == 0: v.enemy("wisp",sc,sr-6)
     # THE BAD DREAMS — drops at the plateau edge, then chases you to the end
-    v.boss = dict(type="badcode", x=560, y=104)
+    v.boss = dict(type="badcode", x=480, y=104)   # drops at the plateau edge, BEHIND you
     v.goalX = 176*TS
     return v
 

@@ -78,7 +78,7 @@ const TUNING = {
   HOGF_HP: 14, HOGF_VOLLEY: 5,
   MUSH_VX: 2.2, MUSH_VY: 4.5,
   BOSS_ACTIVATE_DIST: 280, BOSS_DEATH_FRAMES: 80,
-  BADCODE_HP: 40, BADCODE_SPEED: 1.7,   // the chasing bad-dreams mass (slower than the swan)
+  BADCODE_HP: 30, BADCODE_SPEED: 1.4,   // the chasing bad-dreams mass (clearly slower than the swan)
 
   // --- scoring ---
   POINTS_POPCORN: 50, POINTS_STOMP: 100, POINTS_BOSS: 5000,
