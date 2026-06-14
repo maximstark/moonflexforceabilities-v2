@@ -1,4 +1,8 @@
 // Full-game headless scenarios. Appended after the game modules by run.js.
+// Reflects the CURRENT engine: title -> overworld map -> world; powers STACK
+// in p.powers[]; the name store returns to the MAP; the ending/credits are
+// gated behind level.finale (no shipped level sets it, so it's exercised by
+// fabricating finale on the final world).
 let passCount = 0, failCount = 0;
 function check(label, cond, detail = "") {
   if (cond) { passCount++; console.log("  PASS  " + label); }
@@ -19,9 +23,10 @@ function releaseAll() {
 }
 const P = () => players[0];
 function groundY(p) { return p.y + p.h; }
+// enter a world directly, dismissing any scripted story cards (L7/L8 have them)
 async function gotoLevel(id) {
-  const pr = Game.enterLevel(id);
-  await pr; step(2);
+  await Game.enterLevel(id); step(2);
+  for (let g = 0; g < 24 && Game.state === "card"; g++) { tap(menuPad, "confirm"); step(2); }
 }
 async function stompUnit(b, maxTries = 40) {
   for (let t = 0; t < maxTries && b.hp > 0; t++) {
@@ -39,33 +44,20 @@ async function main() {
   await Game.boot();
   check("boot reaches title", Game.state === "title");
   check("all sheets loaded (incl. forge2)", Object.keys(sheets).length >= 37, Object.keys(sheets).length);
+
+  /* ============ overworld map: title -> map -> world ============ */
   tap(menuPad, "confirm"); update();
-  check("title starts a run (hub loads)", await waitState("play") && Game.levelId === "hub");
+  check("title opens the overworld map", Game.state === "map", Game.state);
+  // the token starts on node 1 (THE DREAM LAKE); a locked path refuses
+  save.unlocked = 1;
+  tap(menuPad, "right"); update();
+  check("locked path refuses (still on the map)", Game.state === "map");
+  // confirm on the current node dives into world 1
+  tap(menuPad, "confirm");
+  check("map enters THE DREAM LAKE", await waitState("play", 900) && Game.levelId === 1,
+        Game.state + "/" + Game.levelId);
 
-  /* ============ hub: floor, elevator, doors ============ */
-  step(60);
-  check("player stands in the hub", P().grounded, "y=" + P().y);
-  check("hub does not drain happiness", Game.happiness === T.HAPPINESS_MAX);
-  // ride the elevator up one stop
-  const elevStops = level.elevator.stops;
-  P().x = level.elevator.x + 6; P().y = elevStops[0] - P().h; P().vy = 0;
-  step(3);
-  tap(pads[0], "action"); step(2);
-  let rode = false;
-  for (let i = 0; i < 600; i++) { step(); if (Math.abs(groundY(P()) - elevStops[1]) < 3) { rode = true; break; } }
-  check("elevator carries you up a floor", rode, "feetY=" + groundY(P()) + " want " + elevStops[1]);
-  // locked door refuses
-  const door2 = level.doors.find(d => d.level === 2);
-  P().x = door2.x; P().y = door2.y - P().h + 14; P().vy = 0; step(5);
-  tap(pads[0], "down"); step(3);
-  check("locked floor 2 door refuses entry", Game.levelId === "hub");
-  // unlocked door 1 enters
-  const door1 = level.doors.find(d => d.level === 1);
-  P().x = door1.x; P().y = door1.y; P().vy = 0; step(5);
-  tap(pads[0], "down"); update();
-  check("door 1 enters THE DREAM LAKE", await waitState("play", 900) && Game.levelId === 1, Game.levelId);
-
-  /* ============ the sacred movement regression ============ */
+  /* ============ the sacred movement regression (in L1) ============ */
   step(60);
   const baseY = groundY(P());
   check("L1 spawn ground intact (192)", P().grounded && baseY === 192, baseY);
@@ -110,7 +102,7 @@ async function main() {
   check("mermaid toggle still works", P().form === "mermaid");
   step(20);
 
-  /* ============ L1 boss: Grumpis Jr ============ */
+  /* ============ L1 boss: Grumpis Jr -> clear -> store -> MAP ============ */
   P().x = 1500; P().y = 160; P().vy = 0; P().form = "swan"; step(8);
   check("grumpis activates", Bosses.activated);
   const g1 = Bosses.units[0];
@@ -123,13 +115,33 @@ async function main() {
   check("clear unlocks floor 2", save.unlocked >= 2);
   while (Game.state === "clear") step();
   check("clear leads to the name store", Game.state === "store");
-  tap(menuPad, "confirm"); step(2);                     // buy 'A' (cursor stays at 0)
+  tap(menuPad, "confirm"); step(2);                     // buy 'A' (cursor at 0)
   for (let i = 0; i < 27; i++) { tap(menuPad, "right"); step(1); }   // 0 -> 27 = END
   tap(menuPad, "confirm"); step(2);
-  // whether END landed or letters ran out, we must be back in the hub eventually
-  check("store completes back to the hub", await waitState("play", 900) && Game.levelId === "hub",
-        Game.state + "/" + Game.levelId);
+  check("store completes back to the overworld map", await waitState("map", 900), Game.state);
   check("high score recorded", save.highScores.length >= 1);
+
+  /* ============ the tall house (dormant hub: elevator + doors) ============ */
+  await gotoLevel("hub"); step(30);
+  check("hub: player stands on a floor", P().grounded, "y=" + P().y);
+  check("hub does not drain happiness", Game.happiness === T.HAPPINESS_MAX);
+  const stops = level.elevator.stops;
+  P().x = level.elevator.x + 6; P().y = stops[0] - P().h; P().vy = 0; step(3);
+  tap(pads[0], "action"); step(2);
+  let rode = false;
+  for (let i = 0; i < 600; i++) { step(); if (Math.abs(groundY(P()) - stops[1]) < 3) { rode = true; break; } }
+  check("elevator carries you up a floor", rode, "feetY=" + groundY(P()) + " want " + stops[1]);
+  const locked = level.doors.find(d => d.level > save.unlocked);
+  if (locked) {
+    P().x = locked.x; P().y = locked.y - P().h + 14; P().vy = 0; step(5);
+    tap(pads[0], "down"); step(3);
+    check("a locked door refuses entry", Game.levelId === "hub");
+  } else check("a locked door refuses entry", true);
+  const opened = level.doors.find(d => d.level <= save.unlocked);
+  P().x = opened.x; P().y = opened.y; P().vy = 0; step(5);
+  tap(pads[0], "down"); update();
+  check("an open door dives into its world",
+        await waitState("play", 900) && Game.levelId === opened.level, Game.levelId);
 
   /* ============ L2: goose feet, pound, tree rescue, twins ============ */
   await gotoLevel(2); step(20);
@@ -137,11 +149,9 @@ async function main() {
   const gf = World.pickups.find(pk => pk.type === "pickup_goosefeet");
   P().x = gf.x; P().y = gf.y; P().vy = 0; step(3);
   check("goose feet worn from pickup", has(P(), "goosefeet"));
-  // moon -> moonflex (solo swan)
   const moon = World.pickups.find(pk => pk.type === "moon");
   P().x = moon.x; P().y = moon.y; P().vy = 0; step(3);
   check("moon grants MOONFLEX to the swan", P().moonTimer > 0);
-  // tree rescue: stomp the three fires
   const scoreBeforeRescue = Game.score;
   let firesOut = 0;
   for (const [c, r] of [[77, 4], [80, 4], [83, 4]]) {
@@ -153,12 +163,13 @@ async function main() {
   const baby = World.pickups.find(pk => pk.type === "babyswan");
   P().x = baby.x; P().y = baby.y; P().vy = 0; step(3);
   check("baby swan rescued (carried)", P().carrying === 1);
-  // shed: drop the goose feet
-  P().moonTimer = 0;
-  tap(pads[0], "shed"); step(3);
-  check("shed jumps out of the costume", !has(P(), "goosefeet") &&
+  // the shed button was retired; costumes now auto-absorb a hit instead
+  P().moonTimer = 0; P().iframes = 0; P().hearts = P().maxHearts;
+  const heartsBefore = P().hearts;
+  hurtPlayer(P(), P().x + 50); step(3);
+  check("a hit is absorbed by the costume, not a heart",
+        !has(P(), "goosefeet") && P().hearts === heartsBefore &&
         World.pickups.some(pk => pk.type === "pickup_goosefeet" && !pk.taken && pk.grace > 0));
-  // twins
   P().x = 1950; P().y = 150; P().vy = 0; step(10);
   const twins = Bosses.units;
   check("the twins are two grumpises", twins.length === 2);
@@ -169,21 +180,19 @@ async function main() {
   step(120);
   check("twins clear spawns trophy", World.pickups.some(pk => pk.type === "trophy"));
 
-  /* ============ L3: the deep — alligator gag, papa ============ */
+  /* ============ L3: the deep — alligator gag, chest powers, papa ============ */
   await gotoLevel(3); step(10);
   const gator = enemies.find(e => e.type === "alligator");
   P().x = gator.x - 30; P().y = gator.y; P().vx = 0; P().vy = 0; step(4);
   check("cat face reveals itself: AGH (alligator!)", gator.state !== "idle", gator.state);
-  // chest chooser
   Game.stars = 3;
   const chest = World.pickups.find(pk => pk.type === "chest");
   P().x = chest.x; P().y = chest.y - 10; P().vy = 0; P().inWater = true; step(4);
   check("3 stars open the treasure box", Game.state === "chooser");
-  tap(menuPad, "confirm"); step(2);                      // pick FIRE
-  check("fire power chosen", P().power === "fire" && Game.state === "play");
+  tap(menuPad, "confirm"); step(2);                      // pick FIRE (chooser idx 0)
+  check("fire power chosen (stacks in p.powers)", P().powers.includes("fire") && Game.state === "play");
   tap(pads[0], "action"); step(2);
   check("fireball flies", projectiles.some(pr => pr.kind === "fireball"));
-  // papa
   P().x = 2200; P().y = 60; P().vy = 0; step(12);
   const papa = Bosses.units[0];
   check("papa grumpis stirs the deep", Bosses.activated && papa.sub === "papa");
@@ -201,12 +210,10 @@ async function main() {
 
   /* ============ L4: springs, mush vault, the family ============ */
   await gotoLevel(4); step(10);
-  // spring bounce
   P().x = 13 * 16 + 2; P().y = 9 * 16 - P().h - 30; P().vx = 0; P().vy = 0;
   let sprung = false;
   for (let i = 0; i < 80; i++) { step(); if (P().vy < -7) { sprung = true; break; } }
   check("springs launch hard", sprung, "vy=" + P().vy.toFixed(1));
-  // pound the mush vault open
   wearCostume(P(), "goosefeet");
   P().x = 60 * 16 + 1; P().y = 16; P().vx = 0; P().vy = 0; step(2);
   tap(pads[0], "down"); step(1);
@@ -214,7 +221,6 @@ async function main() {
   let broke = false;
   for (let i = 0; i < 90; i++) { step(); if (grid[6][60] === -1) { broke = true; break; } }
   check("pound smashes the mush blocks", broke);
-  // the whole family
   P().x = 2150; P().y = 120; P().vy = 0; step(12);
   check("family reunion: three bosses", Bosses.units.length === 3, Bosses.units.length);
   let famOK = true;
@@ -229,12 +235,27 @@ async function main() {
   /* ============ L5: swarm, spoon deflect, the hog dog flees ============ */
   await gotoLevel(5); step(10);
   check("the fever swarm is dense (30+ enemies)", enemies.length >= 30, enemies.length);
+  // separation regression: a big swarm must never collapse into one stack.
+  // A real collapse overlaps EVERY frame; transient crossings come and go, so
+  // we sample over time and take the minimum (robust against snapshot phase).
+  const overlapPairs = () => {
+    const sw = enemies.filter(e => e.alive && e.deadTimer <= 0);
+    let n = 0;
+    for (let i = 0; i < sw.length; i++) for (let j = i + 1; j < sw.length; j++)
+      if (Math.abs(sw[i].x - sw[j].x) < 6 && Math.abs(sw[i].y - sw[j].y) < 6) n++;
+    return n;
+  };
+  let minStacked = Infinity;
+  for (let s = 0; s < 6; s++) {
+    for (let i = 0; i < 60; i++) { P().x = 600; P().y = 150; P().vx = 0; P().vy = 0; P().iframes = 9999; step(); }
+    minStacked = Math.min(minStacked, overlapPairs());
+  }
+  check("the swarm spreads out (no stacking)", minStacked <= 1, "min overlapping pairs over time = " + minStacked);
   wearCostume(P(), "spoon");
   P().x = 400; P().y = 100; P().vx = 0; P().vy = 0; P().iframes = 9999;
   spawnProjectile("mushroom", P().x + 30, P().y + 4, -1.5, 0, "enemy", 1);
   press(pads[0], "right"); tap(pads[0], "action"); step(3); releaseAll();
   check("the giant spoon deflects mushrooms", projectiles.some(pr => pr.kind === "mushroom" && pr.side === "player"));
-  // hog dog
   P().x = 2480; P().y = 140; P().vy = 0; P().iframes = 0; step(12);
   const hog = Bosses.units[0];
   check("the BIG HOG DOG appears", Bosses.activated && hog.sub === "hog");
@@ -247,30 +268,75 @@ async function main() {
   for (let i = 0; i < 400 && !trophy5; i++) { step(); trophy5 = World.pickups.find(pk => pk.type === "trophy"); }
   check("the chase goal appears", !!trophy5);
 
-  /* ============ L6: MECHA SWAN finale ============ */
+  /* ============ L6: MECHA SWAN — fly, smash, laser; clears to a trophy ============ */
   await gotoLevel(6); step(10);
   check("you are the GIANT MECHA SWAN", P().form === "mecha" && P().maxHearts === T.MECHA_HEARTS);
-  const y0 = P().y; press(pads[0], "jump"); step(30);
-  check("the mecha flies", P().y < y0 - 20, (y0 - P().y).toFixed(0));
+  const yTop = P().y; press(pads[0], "jump"); step(30);
+  check("the mecha flies", P().y < yTop - 20, (yTop - P().y).toFixed(0));
   releaseAll();
-  // smash through a mush wall by flying into it
   P().x = 19 * 16; P().y = 10 * 16; P().vx = 2; step(20);
   check("mecha smashes mush walls by existing", grid[10][20] === -1);
-  // laser the final boss
   P().x = 2700; P().y = 120; P().vy = 0; step(12);
   const hogf = Bosses.units[0];
   check("final hog dog awaits (14 hp)", hogf && hogf.maxHp === T.HOGF_HP);
   let lasered = 0;
   for (let i = 0; i < 1200 && hogf.hp > 0; i++) {
-    P().x = hogf.x - 160; P().y = hogf.y + 10; P().vy = 0; P().iframes = 9999;
-    P().facing = 1;
+    P().x = hogf.x - 120; P().y = hogf.y + 10; P().vy = 0; P().iframes = 9999; P().facing = 1;
     if (P().atkCD <= 0) { tap(pads[0], "action"); lasered++; }
     step();
   }
   check("laser eyes carve him down (power fantasy)", hogf.hp <= 0, "hp=" + hogf.hp + " shots=" + lasered);
-  let beads = null;
-  for (let i = 0; i < 400 && !beads; i++) { step(); beads = World.pickups.find(pk => pk.type === "beads"); }
-  check("the Mardi Gras beads appear", !!beads);
+  let trophy6 = null;
+  for (let i = 0; i < 400 && !trophy6; i++) { step(); trophy6 = World.pickups.find(pk => pk.type === "trophy"); }
+  check("L6 (not the finale) clears to a trophy, not beads", !!trophy6 &&
+        !World.pickups.some(pk => pk.type === "beads"));
+  P().x = trophy6.x; P().y = trophy6.y - 4; P().vx = 0; P().vy = 0; P().iframes = 0; step(3);
+  check("L6 trophy triggers clear", Game.state === "clear");
+
+  /* ============ L7: THE BROKEN ASCENT — on foot, bossless summit ============ */
+  await gotoLevel(7); step(10);
+  check("L7 THE BROKEN ASCENT loads", level.name === "THE BROKEN ASCENT");
+  check("L7 is bossless", !Bosses.any());
+  check("the babies-back boost applies (+30% happy)",
+        level.startHappy === 130 && Game.happiness > 120, Game.happiness);
+  check("bossless summit auto-spawns a trophy at the goal",
+        World.pickups.some(pk => pk.type === "trophy"));
+
+  /* ============ L8: THE LONG FALL — the bad dreams chase + power stacking ============ */
+  await gotoLevel(8); step(10);
+  check("L8 THE LONG FALL loads", level.name === "THE LONG FALL");
+  const bad = Bosses.units[0];
+  check("THE BAD DREAMS boss is present", bad && bad.sub === "badcode");
+  // regression: flies must not drift/sink off-screen before you reach them
+  const fliesAtLoad = enemies.filter(e => e.type === "fly").length;
+  check("L8 spawns flies", fliesAtLoad >= 1, fliesAtLoad);
+  for (let i = 0; i < 360; i++) { P().x = 48; P().y = 112; P().vx = 0; P().vy = 0; P().iframes = 9999; step(); }
+  check("flies stay airborne until you reach them (don't sink)",
+        enemies.filter(e => e.type === "fly" && e.alive).length === fliesAtLoad,
+        enemies.filter(e => e.type === "fly" && e.alive).length + "/" + fliesAtLoad);
+  P().x = 600; P().y = 120; P().iframes = 9999; step(6);
+  check("the bad dreams wakes once you pass it", Bosses.activated);
+  // power stacking: a 2nd of the same power makes a mirrored pair (lvl 2).
+  // powers persist across worlds by design, so clear them to isolate the test.
+  P().powers = []; P().lvl = {};
+  const chests8 = World.pickups.filter(pk => pk.type === "chest");
+  Game.stars = 3;
+  P().x = chests8[0].x; P().y = chests8[0].y - 10; P().vy = 0; P().iframes = 9999; step(4);
+  check("L8 chest opens the chooser", Game.state === "chooser");
+  tap(menuPad, "confirm"); step(2);                      // fire
+  check("first pick adds the power (lvl 1)", P().powers.includes("fire") && (P().lvl.fire || 0) === 1);
+  Game.stars = 3;
+  P().x = chests8[1].x; P().y = chests8[1].y - 10; P().vy = 0; P().iframes = 9999; step(4);
+  check("a second chest reopens the chooser", Game.state === "chooser");
+  tap(menuPad, "confirm"); step(2);                      // fire again -> mirrored pair
+  check("same power again stacks to a mirrored pair (lvl 2)", (P().lvl.fire || 0) === 2, P().lvl.fire);
+
+  /* ============ the finale path (gated code: beads -> ending -> credits -> scores) ============ */
+  await gotoLevel(8); step(5);
+  level.finale = true;                                   // fabricate: no shipped level sets it yet
+  World.spawnTrophy("beads");
+  const beads = World.pickups.find(pk => pk.type === "beads");
+  check("finale: the gold beads appear", !!beads);
   const scorePre = Game.score;
   P().x = beads.x; P().y = beads.y - 6; P().vx = 0; P().vy = 0; P().iframes = 0; step(4);
   check("beads pay TEN MILLION points", Game.score >= scorePre + T.POINTS_FINALE);
@@ -278,25 +344,24 @@ async function main() {
   step(340); tap(menuPad, "confirm"); step(2);
   check("credits roll", Game.state === "credits");
   tap(menuPad, "confirm"); step(2);
-  check("final store opens with million-point letters", Game.state === "store");
-  // buy 2 letters at 1,000,000 then END
+  check("final store opens", Game.state === "store");
   tap(menuPad, "confirm"); step(1);
   for (let i = 0; i < 27; i++) { tap(menuPad, "right"); step(1); }
   tap(menuPad, "confirm"); step(2);
-  check("final score recorded in the hall", Game.state === "scores" && save.highScores.length >= 2,
+  check("final world records into the hall of dreamers", Game.state === "scores" && save.highScores.length >= 2,
         Game.state);
   tap(menuPad, "confirm"); step(2);
   check("back to title; the dream can begin again", Game.state === "title");
 
   /* ============ co-op ============ */
-  tap(menuPad, "confirm"); update(); await waitState("play");
+  await gotoLevel(1); step(5);
   joinP2(); step(2);
   check("charmgirl drops in", coop && players.length === 2 && players[1].character === "charmgirl");
   grantMoon(players[1]); step(2);
   check("moonlight makes her a T-REX", players[1].form === "trex");
   players[1].moonTimer = 1; step(2);
   check("the moon sets; small again", players[1].form === "charmgirl");
-  players[0].hearts = 1; players[0].iframes = 0;
+  players[0].hearts = 1; players[0].iframes = 0; players[0].stack = [];
   hurtPlayer(players[0], players[0].x + 50); step(2);
   check("P1 down but P2 keeps the dream alive", players[0].dead && Game.state === "play");
   let revived = false;

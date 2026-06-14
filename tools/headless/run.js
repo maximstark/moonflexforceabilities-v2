@@ -2,7 +2,7 @@
 // Usage (from repo root):  node tools/headless/run.js
 const fs = require("fs"), path = require("path"), { execSync } = require("child_process");
 const root = path.join(__dirname, "..", "..");
-const ORDER = ["tuning","audio","core","physics","player","enemies","bosses","world","ui","main"];
+const ORDER = ["tuning","audio","core","physics","player","enemies","bosses","world","overworld","ui","main"];
 let src = fs.readFileSync(path.join(__dirname, "stubs.js"), "utf-8");
 for (const m of ORDER) {
   let code = fs.readFileSync(path.join(root, "js", m + ".js"), "utf-8");

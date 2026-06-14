@@ -3,7 +3,13 @@ const fs = require("fs");
 const ctxStub = new Proxy({}, {
   // memoize the noop per property: a fresh closure per canvas call makes
   // 50k-frame bot runs allocation-bound
-  get: (t, p) => (p in t ? t[p] : (t[p] = () => {})),
+  get: (t, p) => {
+    if (p in t) return t[p];
+    // measureText returns a TextMetrics object in the real canvas; the engine
+    // reads .width (e.g. world.js drawPrompt), so the stub must too
+    if (p === "measureText") return (t[p] = () => ({ width: 0 }));
+    return (t[p] = () => {});
+  },
   set: (t, p, v) => { t[p] = v; return true; },
 });
 globalThis.document = { getElementById: () => ({ getContext: () => ctxStub, width: 0, height: 0 }), title: "" };
