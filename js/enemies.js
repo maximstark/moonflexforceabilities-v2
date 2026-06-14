@@ -17,6 +17,8 @@ const ENEMY_DEFS = {
   fly:       { w: 18, h: 13, sheet: "fly",       hp: 2, score: 250 },
 };
 
+const FLOATERS = new Set(["fish", "alligator", "wisp", "fly"]);   // no-gravity movers
+
 function makeEnemy(spec) {
   const d = ENEMY_DEFS[spec.type];
   return { type: spec.type, w: d.w, h: d.h, hp: d.hp, score: d.score, gentle: !!d.gentle,
@@ -56,7 +58,41 @@ function updateEnemies() {
     if (e.y > gridH * TS + 64) { e.alive = false; continue; }
     contactPlayers(e);
   }
+  separateEnemies();
   enemies = enemies.filter(e => e.alive || e.deadTimer > 0);
+}
+
+/* Soft body-separation so a crowd never collapses into one stack. Without it,
+ * identical-speed walkers phase-lock when they snap to the same wall, and
+ * homing flyers/frogs all pile onto the player. We nudge overlapping pairs
+ * apart along the shallowest axis (X for anything touching the ground, so we
+ * never lift a walker off its floor; 2D only for floater-vs-floater clouds). */
+function separateEnemies() {
+  const n = enemies.length;
+  for (let i = 0; i < n; i++) {
+    const a = enemies[i];
+    if (!a.alive || a.deadTimer > 0) continue;
+    for (let j = i + 1; j < n; j++) {
+      const b = enemies[j];
+      if (!b.alive || b.deadTimer > 0) continue;
+      const dx = (a.x + a.w / 2) - (b.x + b.w / 2);
+      const dy = (a.y + a.h / 2) - (b.y + b.h / 2);
+      const ox = (a.w + b.w) / 2 - Math.abs(dx);
+      const oy = (a.h + b.h) / 2 - Math.abs(dy);
+      if (ox <= 0 || oy <= 0) continue;                 // not overlapping
+      const bothFloat = FLOATERS.has(a.type) && FLOATERS.has(b.type);
+      const cap = bothFloat ? 1.6 : 1;           // homers converge fast — push them harder
+      if (bothFloat && oy < ox) {
+        const s = dy === 0 ? ((i + j) & 1 ? 1 : -1) : Math.sign(dy);
+        const p = Math.min(oy / 2, cap);
+        a.y += s * p; b.y -= s * p;
+      } else {
+        const s = dx === 0 ? ((i + j) & 1 ? 1 : -1) : Math.sign(dx);
+        const p = Math.min(ox / 2, cap);
+        a.x += s * p; b.x -= s * p;
+      }
+    }
+  }
 }
 
 function updateEnemyBrain(e, mult) {
@@ -131,12 +167,16 @@ function updateEnemyBrain(e, mult) {
     e.vy = clamp(e.vy, -T.WISP_SPEED * mult, T.WISP_SPEED * mult);
     e.dir = e.vx < 0 ? -1 : 1;
   } else if (e.type === "fly") {
+    let homing = false;
     if (pl) {
       const dx = (pl.x + pl.w / 2) - (e.x + e.w / 2);
       const dy = (pl.y + pl.h / 2) - (e.y + e.h / 2);
       const dd = Math.hypot(dx, dy) || 1;
-      if (dd < T.FLY_RANGE) { e.vx += dx / dd * 0.22 * mult; e.vy += dy / dd * 0.22 * mult; }
+      if (dd < T.FLY_RANGE) { e.vx += dx / dd * 0.22 * mult; e.vy += dy / dd * 0.22 * mult; homing = true; }
     }
+    // out of range: bleed off velocity so the jitter can't accumulate into a
+    // steady drift (sin() summed has a DC bias) and sink the fly off-screen
+    if (!homing) { e.vx *= 0.9; e.vy *= 0.9; }
     e.vy += Math.sin(e.animTimer / 5) * 0.25;             // jittery menace
     const sp = T.FLY_SPEED * mult;
     e.vx = clamp(e.vx, -sp, sp); e.vy = clamp(e.vy, -sp, sp);
