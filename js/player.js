@@ -83,17 +83,26 @@ function updatePlayer(p) {
 
 function updateLand(p, pad, dir) {
   const mult = speedMultFor(p);
-  const max = T.MAX_RUN_SPEED * mult;
+  const running = !!pad.held.run;                  // SMW-style dash: hold to go faster
+  const walkMax = T.MAX_RUN_SPEED * mult;
+  const max = running ? walkMax * T.RUN_SPEED_MULT : walkMax;
   const turnMult = has(p, "goosefeet") ? T.GOOSE_TURN_MULT : 1;
 
   if (p.rooted) {                                  // tree power: planted
     p.vx = 0;
     if (!pad.held.down || !p.grounded) p.rooted = false;
   } else if (dir !== 0) {
-    let a = p.grounded ? T.GROUND_ACCEL : T.AIR_ACCEL;
-    if (p.grounded && p.vx !== 0 && Math.sign(p.vx) !== dir) a = T.TURN_ACCEL * turnMult;
-    p.vx += dir * a;
-    if (Math.abs(p.vx) > max) p.vx = Math.sign(p.vx) * Math.max(max, Math.abs(p.vx) - T.GROUND_DECEL);
+    if (Math.abs(p.vx) <= max) {                   // accelerate toward the cap
+      let a = p.grounded ? (running ? T.RUN_ACCEL : T.GROUND_ACCEL) : T.AIR_ACCEL;
+      if (p.grounded && p.vx !== 0 && Math.sign(p.vx) !== dir) a = T.TURN_ACCEL * turnMult;
+      p.vx += dir * a;
+      if (Math.abs(p.vx) > max) p.vx = Math.sign(p.vx) * max;     // don't overshoot the cap
+    } else {                                        // over the cap (let go of run, or a buff faded):
+      const ease = (!running && Math.abs(p.vx) > walkMax) ? T.RUN_EASE : T.GROUND_DECEL;
+      p.vx = Math.sign(p.vx) * Math.max(max, Math.abs(p.vx) - ease);   // ease down, keep momentum
+    }
+    if (running && p.grounded && Math.abs(p.vx) > walkMax + 0.1 && p.animTimer % 6 === 0)
+      World.burstAt(p.x + p.w / 2, p.y + p.h, "poof", 1);           // dash dust
   } else {
     const d = p.grounded ? T.GROUND_DECEL : T.AIR_DECEL;
     p.vx -= Math.sign(p.vx) * Math.min(Math.abs(p.vx), d);

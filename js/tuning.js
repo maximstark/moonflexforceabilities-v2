@@ -16,6 +16,9 @@ const TUNING = {
   // --- ground movement (the sacred block) ---
   GROUND_ACCEL: 0.22, GROUND_DECEL: 0.30, TURN_ACCEL: 0.50, MAX_RUN_SPEED: 2.0,
   AIR_ACCEL: 0.14, AIR_DECEL: 0.03,
+  // hold-to-run (SMW-style dash): +25% top speed, a touch more push to get there,
+  // and a gentle ease back down to the walk cap when you let go (momentum carries).
+  RUN_SPEED_MULT: 1.25, RUN_ACCEL: 0.28, RUN_EASE: 0.06,
   GRAVITY_RISE: 0.30, GRAVITY_FALL: 0.44,
   JUMP_VEL: 5.8, JUMP_CUT_MULT: 0.38,
   APEX_SPEED: 0.7, APEX_GRAVITY_MULT: 0.5, MAX_FALL_SPEED: 6.5,

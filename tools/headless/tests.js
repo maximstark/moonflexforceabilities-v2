@@ -91,6 +91,24 @@ async function main() {
   check("mid-air flap fires when high up", P().flaps === before + 1, P().flaps);
   releaseAll(); step(80);
 
+  /* ============ run/dash (SMW-style): hold C to go faster, release eases back ============ */
+  releaseAll(); P().powers = []; P().lvl = {}; P().stack = [];
+  P().x = 48; P().y = 160; P().vx = 0; P().vy = 0; step(8);     // settle on flat ground
+  const topVx = f => { let m = 0; for (let i = 0; i < f; i++) { step(); m = Math.max(m, Math.abs(P().vx)); } return m; };
+  press(pads[0], "right");
+  const walkTop = topVx(25);
+  check("walk tops out at the base cap", Math.abs(walkTop - T.MAX_RUN_SPEED) < 0.06, walkTop.toFixed(2));
+  press(pads[0], "run");
+  const runTop = topVx(25);
+  check("holding run is ~25% faster", Math.abs(runTop - T.MAX_RUN_SPEED * T.RUN_SPEED_MULT) < 0.07, runTop.toFixed(2));
+  pads[0].held.run = false;                                     // release run, keep walking
+  step(1); const eased = Math.abs(P().vx);
+  check("releasing run keeps momentum (no instant drop)", eased > T.MAX_RUN_SPEED && eased < runTop, eased.toFixed(2));
+  let drained = false;
+  for (let i = 0; i < 60; i++) { step(); if (Math.abs(Math.abs(P().vx) - T.MAX_RUN_SPEED) < 0.05) { drained = true; break; } }
+  check("then eases smoothly back to the walk cap", drained, P().vx.toFixed(2));
+  releaseAll(); step(20);
+
   /* ============ L1: lilypads are one-way, water works ============ */
   P().x = 57 * 16 + 2; P().y = 150; P().vy = 0;
   let landed = false;

@@ -9,21 +9,21 @@ const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
 /* ---------------- input ----------------
- * Solo: arrows AND wasd both drive P1 (plus space/shift/e/x/c).
- * Co-op: P1 keeps WASD+Space+E/X|F/Q, P2 takes the arrows with
- * RShift jump, RCtrl action, / transform, . shed.  P2 joins on RShift.
+ * Solo: arrows AND wasd both drive P1 (plus space/shift/e/x). Hold C to RUN.
+ * Co-op: P1 keeps WASD+Space+E/X|F, hold C/Q to run; P2 takes the arrows with
+ * RShift jump, RCtrl action, / transform, . run.  P2 joins on RShift.
  */
 const K1 = {  // P1 (always)
   KeyA:"left", KeyD:"right", KeyW:"jump", KeyS:"down",
   Space:"jump", KeyE:"transform", ShiftLeft:"transform",
-  KeyX:"action", KeyF:"action", KeyC:"shed", KeyQ:"shed",
+  KeyX:"action", KeyF:"action", KeyC:"run", KeyQ:"run",
 };
 const K1_SOLO = {  // arrows also drive P1 when no P2
   ArrowLeft:"left", ArrowRight:"right", ArrowUp:"jump", ArrowDown:"down",
 };
 const K2 = {  // P2 (when joined)
   ArrowLeft:"left", ArrowRight:"right", ArrowUp:"jump", ArrowDown:"down",
-  ShiftRight:"jump", ControlRight:"action", Slash:"transform", Period:"shed",
+  ShiftRight:"jump", ControlRight:"action", Slash:"transform", Period:"run",
 };
 const KMENU = {  // ui layer (always live)
   ArrowLeft:"left", ArrowRight:"right", ArrowUp:"up", ArrowDown:"down",

@@ -15,7 +15,7 @@
     a:     { pad: "jump",   menu: "confirm" },   // A = jump / OK
     b:     { pad: "action", menu: "rub" },       // B = X-action / delete-in-store
     select:{ pad: "transform" },                 // the invisible phone
-    shed:  { pad: "shed" },
+    run:   { pad: "run" },                        // hold to dash (SMW-style)
     mute:  { menu: "mute" },
     // START is contextual (handled in press/release)
   };
@@ -113,7 +113,7 @@
     const k = document.getElementById("kbd");
     if (!k) return;
     if (matchMedia("(pointer:fine)").matches)
-      k.textContent = "keyboard: WASD / arrows · space · X · shift — or use the buttons";
+      k.textContent = "keyboard: WASD / arrows · space · X · shift · hold C to run — or use the buttons";
     else k.style.display = "none";
   })();
   window.addEventListener("resize", fitToScreen);
