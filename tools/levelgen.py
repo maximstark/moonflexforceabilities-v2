@@ -533,6 +533,47 @@ def level11():
     v.goalX = 14*TS
     return v
 
+# =====================================================================
+#  LEVEL 12 — THE BIGGEST DREAM  (THE FINALE: the whole giant at last;
+#  climb to his leaning face and finish it, dodging the stomping foot)
+# =====================================================================
+def level12():
+    v = L("THE BIGGEST DREAM", 12, 44, 32, "sky_finale", "", "mecha", drain=0.03)
+    v.next = None
+    v.finale = True                     # wires the beads -> ending -> credits payoff
+    v.letterCost = 1000000
+    v.spawn = (3*TS, 26*TS)
+    v.startHappy = 120
+    v.story = [
+        ["the clouds part — and the WHOLE sky is him.", "", "the big guy. all of him.", "(he is, in fact, very large.)"],
+        ["he is DONE being beaten by toys.", "", "so this is the last dream, brave swan.", "the biggest one of all."],
+        ["climb to his face. give him everything.", "", "for the babies. for Josie.",
+         "for the BEST dream there ever was."],
+    ]
+    R, F, P = "rock_top", "rock_fill", "platform"
+    # walled cloud arena + a solid floor
+    v.fill(0, 0, 0, 31, F); v.fill(43, 43, 0, 31, F)
+    v.ground(1, 42, 28, R, F, edges=False)
+    v.deco([(2, 27, "sign"), (5, 27, "lantern"), (39, 27, "lantern")])
+    # the climb to the battle balcony (reachable serpentine, then the wide stage)
+    v.plat(5, 8, 25, P); v.plat(10, 13, 22, P); v.plat(14, 17, 19, P); v.plat(18, 21, 16, P)
+    v.plat(31, 34, 16, P)                          # a side perch for repositioning
+    v.plat(16, 28, 13, P)                          # THE BALCONY — fight his face from here
+    v.deco([(16, 12, "lantern"), (28, 12, "lantern")])
+    # the final swarm (boss-focused, but the sky still bites)
+    for c in range(6, 40, 5): v.enemy("fly", c, 9)
+    for c in range(9, 38, 7): v.enemy("wisp", c, 21)
+    for c in (12, 24, 33): v.enemy("fly", c, 17)
+    # one last loadout top-up at the bottom
+    v.pick("chest", 10, 27); v.pick("chest", 22, 27); v.pick("chest", 33, 27)
+    for c in (6, 12, 18, 24, 30, 36): v.pick("star", c, 27)
+    for c in (10, 22, 33): v.pick("star", c, 26)
+    v.pick("treat", 4, 27); v.pick("treat", 40, 27); v.pick("moon", 22, 26)
+    # THE WHOLE BIG GUY — head centered over the balcony (col 22); his face dips into reach
+    v.boss = dict(type="bigguy", x=22*TS - 44, y=56, dip=96, floor=28*TS, name="THE WHOLE BIG GUY")
+    v.goalX = 22*TS
+    return v
+
 def hub():
     v = L("HOME", 0, 26, 62, "sky_hub", "par_hub", "hub", drain=0.0)
     v.spawn = (5*TS, 57*TS)
@@ -578,5 +619,6 @@ if __name__ == "__main__":
     level8().out("level8.json")
     level10().out("level10.json")
     level11().out("level11.json")
+    level12().out("level12.json")
     hub().out("hub.json")
     print("all levels written")

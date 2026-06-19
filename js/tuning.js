@@ -91,6 +91,10 @@ const TUNING = {
   // the rematch (world 11): a relentless slamming foot — only hittable while it's planted
   COLOSSUS_HP: 9, COLOSSUS_HOVER: 150, COLOSSUS_HOVER_T: 50, COLOSSUS_SLAM_V: 12,
   COLOSSUS_LIFT_V: 6, COLOSSUS_PLANT: 40, COLOSSUS_TRACK: 1.7,
+  // THE FINALE (world 12): the whole giant at last. His FACE leans in (the only
+  // weakpoint, and only while it's dipped low) while a foot stomps your column.
+  BIGGUY_HP: 12, BIGGUY_TAUNT: 95, BIGGUY_DIP: 80, BIGGUY_DIP_DIST: 96,
+  BIGGUY_FOOT_GAP: 70, BIGGUY_FOOT_WIND: 34, BIGGUY_FOOT_V: 13, BIGGUY_FOOT_W: 48, BIGGUY_FOOT_H: 150,
 
   // --- scoring ---
   POINTS_POPCORN: 50, POINTS_STOMP: 100, POINTS_BOSS: 5000,
@@ -98,7 +102,7 @@ const TUNING = {
   NAME_MAX_LEN: 8,
 
   // --- progression ---
-  WORLD_COUNT: 11,                 // number of worlds (the finale level sets finale:true)
+  WORLD_COUNT: 12,                 // number of worlds (the finale level sets finale:true)
 
   // --- camera & juice ---
   CAM_LERP: 0.12, CAM_LOOKAHEAD: 24, SHAKE_FRAMES: 6,

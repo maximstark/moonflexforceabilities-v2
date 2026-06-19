@@ -1,8 +1,8 @@
 // Full-game headless scenarios. Appended after the game modules by run.js.
 // Reflects the CURRENT engine: title -> overworld map -> world; powers STACK
 // in p.powers[]; the name store returns to the MAP; the ending/credits are
-// gated behind level.finale (no shipped level sets it, so it's exercised by
-// fabricating finale on the final world).
+// gated behind level.finale (world 12, THE BIGGEST DREAM, sets it — so the
+// finale path is exercised on the real final world).
 let passCount = 0, failCount = 0;
 function check(label, cond, detail = "") {
   if (cond) { passCount++; console.log("  PASS  " + label); }
@@ -438,6 +438,28 @@ async function main() {
   for (let i = 0; i < 500 && !trophy11; i++) { if (Game.state === "card") tap(menuPad, "confirm"); P().x = 14 * 16; P().y = 6 * 16; P().iframes = 9999; step(); trophy11 = World.pickups.find(pk => pk.type === "trophy"); }
   check("beating the foot clears the climb (summit trophy)", !!trophy11);
 
+  /* ============ L12: THE BIGGEST DREAM — the whole big guy (the finale boss) ============ */
+  await gotoLevel(12); step(10);
+  check("L12 THE BIGGEST DREAM loads (the finale)",
+        level.name === "THE BIGGEST DREAM" && level.world === 12 && level.finale === true, level.name);
+  const guy = Bosses.units[0];
+  check("the WHOLE big guy is here", guy && guy.sub === "bigguy", guy ? guy.sub : "none");
+  Game.stars = 0;                                        // don't trip a chest open while we drive the fight
+  for (let i = 0; i < 6; i++) { P().x = 5 * 16; P().y = 26 * 16; P().iframes = 9999; step(); if (Game.state === "card") tap(menuPad, "confirm"); }
+  check("the big guy wakes for the finale", Bosses.activated);
+  guy.state = "taunt"; guy.iframes = 0; const ghp0 = guy.hp;
+  Bosses.hitByBox({ x: guy.x, y: guy.y, w: guy.w, h: guy.h }, 3);
+  check("his face is armored while taunting up high", guy.hp === ghp0, guy.hp + "/" + ghp0);
+  guy.state = "dip"; guy.iframes = 0;
+  Bosses.hitByBox({ x: guy.x, y: guy.y, w: guy.w, h: guy.h }, 3);
+  check("his DIPPED face can be hit", guy.hp < ghp0, guy.hp + "/" + ghp0);
+  let gs = 0;
+  while (guy.hp > 0 && gs++ < 80) { guy.state = "dip"; guy.iframes = 0; Bosses.hitByBox({ x: guy.x, y: guy.y, w: guy.w, h: guy.h }, 3); }
+  check("the big guy can be defeated", guy.hp <= 0);
+  let beads12 = null;
+  for (let i = 0; i < 500 && !beads12; i++) { if (Game.state === "card") tap(menuPad, "confirm"); P().x = 5 * 16; P().y = 26 * 16; P().iframes = 9999; step(); beads12 = World.pickups.find(pk => pk.type === "beads"); }
+  check("beating the finale boss drops the GOLD BEADS (not a plain trophy)", !!beads12);
+
   /* ============ level data integrity: rectangular grids, in-range tiles ============ */
   // (a jagged row makes grid[y][x] undefined -> drawTiles crashes once it scrolls on-screen)
   for (let i = 1; i <= T.WORLD_COUNT; i++) {
@@ -451,8 +473,8 @@ async function main() {
   }
 
   /* ============ the finale path (gated code: beads -> ending -> credits -> scores) ============ */
-  await gotoLevel(11); Bosses.spawn(); step(5);          // clear the foot so the fabricated beads aren't interrupted
-  level.finale = true;                                   // fabricate: no shipped level sets it yet
+  await gotoLevel(12); Bosses.spawn(); step(5);          // L12 IS the finale (finale:true); clear the boss, then drop the beads
+  level.finale = true;
   World.spawnTrophy("beads");
   const beads = World.pickups.find(pk => pk.type === "beads");
   check("finale: the gold beads appear", !!beads);

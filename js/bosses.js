@@ -40,6 +40,9 @@ const Bosses = (() => {
     } else if (kind === "colossus") {
       units.push(colossus(spec.x, spec.y, spec));
       arenaName = spec.name || "THE BIG GUY IS FURIOUS";
+    } else if (kind === "bigguy") {
+      units.push(bigguy(spec.x, spec.y, spec));
+      arenaName = spec.name || "THE WHOLE BIG GUY";
     }
   }
   // a level's boss spec may oversize it (spec.size), buff it (spec.hp), rewrite its
@@ -61,6 +64,17 @@ const Bosses = (() => {
     state: "sleep", timer: 0, iframes: 0, hurtFlash: 0, facing: -1, vx: 0, vy: 0,
     animTimer: 0, rage: 1, dialogue: spec.dialogue || null,
     liftFoot: 0, lift: 0, retreat: 0 });
+  // THE FINALE (world 12): the WHOLE giant at last. His huge face leans down from
+  // the top — the only weakpoint, and only while it's "dip"ped low. Meanwhile a foot
+  // stomps your column. x,y = the head's AABB; y starts at its high (taunting) rest.
+  const bigguy = (x, y, spec = {}) => ({
+    sub: "bigguy", x, y, w: spec.size || 88, h: 72,
+    hp: spec.hp || T.BIGGUY_HP, maxHp: spec.hp || T.BIGGUY_HP,
+    state: "intro", timer: 40, iframes: 0, hurtFlash: 0, facing: -1, animTimer: 0,
+    rage: 1, phase: 1, dialogue: spec.dialogue || null,
+    highY: y, lowY: y + (spec.dip || T.BIGGUY_DIP_DIST),
+    floorPx: spec.floor || (gridH - 2) * TS,
+    fState: "idle", fTimer: 80, fX: x, fY: -T.BIGGUY_FOOT_H });
   // THE REMATCH (world 11): a single furious foot that hovers above you and
   // SLAMS down your column, over and over. Invulnerable mid-air — you can only
   // hurt it in the brief beat it's planted. x,y = the foot's current AABB.
@@ -109,6 +123,7 @@ const Bosses = (() => {
       else if (b.sub === "badcode") updateBadcode(b, mult);
       else if (b.sub === "giant") updateGiant(b, mult);
       else if (b.sub === "colossus") updateColossus(b, mult);
+      else if (b.sub === "bigguy") updateBigguy(b, mult);
       if (b.state !== "dying" && !b.fleeing) bossContact(b);
     }
     units = units.filter(b => b.state !== "gone");
@@ -272,6 +287,48 @@ const Bosses = (() => {
     b.x += b.vx; b.y += b.vy;                               // floats — no gravity, no tiles
   }
 
+  function updateBigFoot(b, r) {                          // a deadly stomp at the player's column
+    if (b.fState === "idle") {
+      const pl = nearestPlayer(b.x + b.w / 2, b.floorPx);
+      if (--b.fTimer <= 0 && pl) { b.fState = "wind"; b.fTimer = T.BIGGUY_FOOT_WIND; b.fX = pl.x + pl.w / 2; }
+    } else if (b.fState === "wind") {
+      if (--b.fTimer <= 0) { b.fState = "slam"; b.fY = -T.BIGGUY_FOOT_H; }
+    } else if (b.fState === "slam") {
+      b.fY += T.BIGGUY_FOOT_V * r;
+      const fb = { x: b.fX - T.BIGGUY_FOOT_W / 2, y: b.fY, w: T.BIGGUY_FOOT_W, h: T.BIGGUY_FOOT_H };
+      for (const p of players) if (!p.dead && overlaps(fb, hurtbox(p))) hurtPlayer(p, b.fX);
+      if (b.fY + T.BIGGUY_FOOT_H >= b.floorPx) {
+        b.fState = "recover"; b.fTimer = 16; Game.shake = 10; AudioSys.sfx("pound");
+        World.burstAt(b.fX, b.floorPx, "poof", 7);
+      }
+    } else if (b.fState === "recover") {
+      if (--b.fTimer <= 0) { b.fState = "idle"; b.fTimer = Math.round(T.BIGGUY_FOOT_GAP / r); }
+    }
+  }
+  function updateBigguy(b, mult) {
+    if (b.state === "intro") {
+      Game.queueCard(b.dialogue ||
+        ["AT LAST — the WHOLE big guy.", "", "you can finally see his face.", "(sunglasses. obviously.)"]);
+      b.state = "taunt"; b.timer = T.BIGGUY_TAUNT; return;
+    }
+    if (b.state === "dying") { b.y -= 3; b.hurtFlash = 0; if (--b.timer <= 0) dieOff(b); return; }
+    if (b.phase === 1 && b.hp <= b.maxHp / 2) { b.phase = 2; Game.shake = 14; AudioSys.sfx("roar"); }
+    b.rage = b.phase === 2 ? 1.5 : 1;
+    const r = b.rage * mult;
+    // the head: taunt high (armored) -> dip low (the weakpoint) -> rise
+    if (b.state === "taunt") {
+      b.y += clamp(b.highY - b.y, -8, 8);
+      if (--b.timer <= 0) { b.state = "dip"; b.timer = Math.round(T.BIGGUY_DIP / b.rage); }
+    } else if (b.state === "dip") {
+      b.y += clamp(b.lowY - b.y, -6 * r, 6 * r);
+      if (--b.timer <= 0) b.state = "rise";
+    } else if (b.state === "rise") {
+      b.y += clamp(b.highY - b.y, -8, 8);
+      if (Math.abs(b.y - b.highY) < 2) { b.state = "taunt"; b.timer = Math.round(T.BIGGUY_TAUNT / b.rage); }
+    }
+    updateBigFoot(b, r);
+  }
+
   function updateColossus(b, mult) {
     if (b.state === "dying") { b.y -= 6; if (--b.timer <= 0) dieOff(b); return; }
     const pl = nearestPlayer(b.x + b.w / 2, b.y);
@@ -359,6 +416,20 @@ const Bosses = (() => {
       }
       return;
     }
+    if (b.sub === "bigguy") {                             // the FACE is the only weakpoint, only when dipped
+      if (b.state !== "dip") return;                      // (high up, it's out of reach anyway)
+      const fb = { x: b.x, y: b.y, w: b.w, h: b.h };
+      for (const p of players) {
+        if (p.dead) continue;
+        const k = classifyContact(p, fb);
+        if ((k === "stomp" || k === "moon") && b.iframes <= 0) {
+          damageBoss(b, p.pounding || p.form === "trex" || p.form === "mecha" ? 3 : 1);
+          if (k === "stomp") bouncePlayer(p);
+          Game.hitstop = T.HITSTOP_BOSS;
+        }   // bonking his face does not hurt YOU — only the foot does
+      }
+      return;
+    }
     const box = { x: b.x, y: b.y, w: b.w, h: b.h };
     for (const p of players) {
       if (p.dead) continue;
@@ -377,6 +448,7 @@ const Bosses = (() => {
   function damageBoss(b, dmg) {
     if (b.iframes > 0 || b.state === "dying" || b.fleeing) return false;
     if (b.sub === "colossus" && b.state !== "planted") return false;   // the foot is armored in mid-air
+    if (b.sub === "bigguy" && b.state !== "dip") return false;          // the face is armored unless dipped low
     b.hp -= dmg;
     b.iframes = (b.sub === "badcode" || b.sub === "giant") ? 18 : T.BOSS_IFRAMES; b.hurtFlash = T.BOSS_HURT_FLASH;
     AudioSys.sfx("bossHurt");
@@ -393,6 +465,12 @@ const Bosses = (() => {
         Game.queueCard(['"AAGH! MY OTHER BEST TOE!"', "",
                         '"fine. FINE. you win this dream, swan."',
                         '"...i am keeping the sandals, though."']);
+        AudioSys.sfx("roar");
+      } else if (b.sub === "bigguy") {                  // THE FINALE: the whole big guy topples
+        b.state = "dying"; b.timer = T.BOSS_DEATH_FRAMES + 60; b.vx = 0; b.hurtFlash = 0; b.fState = "idle";
+        Game.queueCard(['the BIG GUY topples back into the clouds.', "",
+                        '"...okay. OKAY. you really are", " the best dreamer there ever was."',
+                        "", '"...nice toys, kid."']);
         AudioSys.sfx("roar");
       } else if (b.sub === "hog" && !b.final) {        // L5: he flees WITH THE BABIES
         b.fleeing = true; b.timer = 90; b.facing = 1; b.hurtFlash = 0;
@@ -518,11 +596,53 @@ const Bosses = (() => {
     ctx.fillStyle = skin;                                               // toes along the bottom front
     for (let t = 0; t < 5; t++) { const r = (5 - t) * 0.8; ctx.beginPath(); ctx.arc(x + 3 + t * 2.4, y + h - 6, r, 0, Math.PI * 2); ctx.fill(); }
   }
+  function drawBigLeg(x, yTop, w, yBot, skin) {           // a leg + sandal coming straight down
+    ctx.fillStyle = skin; ctx.fillRect(x, yTop, w, yBot - yTop - 8);
+    ctx.fillStyle = "#caa46a"; ctx.fillRect(x - 3, yBot - 9, w + 6, 7);     // cork sole
+    ctx.fillStyle = "#9c7b46"; ctx.fillRect(x - 3, yBot - 3, w + 6, 2);
+    ctx.fillStyle = "#5a3b22"; ctx.fillRect(x + 3, yBot - 18, w - 6, 3);    // a strap
+    ctx.fillStyle = skin;                                                   // toes peeking at the bottom front
+    for (let t = 0; t < 4; t++) { const r = (4 - t) * 0.9; ctx.beginPath(); ctx.arc(x + 2 + t * 2.4, yBot - 7, r, 0, Math.PI * 2); ctx.fill(); }
+  }
+  function drawBigFace(b, camX, camY) {
+    const x = Math.round(b.x - camX), y = Math.round(b.y - camY), w = b.w, h = b.h;
+    const hurt = b.hurtFlash > 0, dipped = b.state === "dip";
+    const skin = hurt ? "#ffb0a0" : "#f3c39a", dk = hurt ? "#e0907c" : "#c98f5e";
+    ctx.fillStyle = dk; ctx.fillRect(x - 4, y + 28, 6, 18); ctx.fillRect(x + w - 2, y + 28, 6, 18);  // ears
+    ctx.fillStyle = skin; ctx.fillRect(x + 6, y, w - 12, h); ctx.fillRect(x, y + 10, w, h - 22);     // head
+    ctx.fillStyle = "#5a4632"; ctx.fillRect(x + 6, y - 6, w - 12, 10);                                // hair tuft
+    for (let i = 0; i < 6; i++) ctx.fillRect(x + 10 + i * 12, y - 9, 4, 4);
+    ctx.fillStyle = "#15121c";                                                                         // BIG sunglasses
+    ctx.fillRect(x + 10, y + 24, w - 20, 15);
+    ctx.fillStyle = dk; ctx.fillRect(x + (w >> 1) - 3, y + 28, 6, 5);                                  // bridge
+    ctx.fillStyle = "#3a3550"; ctx.fillRect(x + 14, y + 27, 8, 3); ctx.fillRect(x + w - 30, y + 27, 8, 3);  // glints
+    if (dipped) {                                                                                      // a furious open snarl + teeth
+      ctx.fillStyle = "#3a1820"; ctx.fillRect(x + 22, y + h - 24, w - 44, 15);
+      ctx.fillStyle = "#fff6e8"; for (let i = 0; i < 5; i++) ctx.fillRect(x + 25 + i * ((w - 50) / 5), y + h - 24, 4, 4);
+    } else {
+      ctx.fillStyle = "#7a3a2a"; ctx.fillRect(x + 24, y + h - 16, w - 48, 4);                          // a flat angry line
+    }
+    for (let i = 0; i < 14; i++) { ctx.fillStyle = "#b98a5e";                                          // stubble
+      ctx.fillRect(x + 16 + (i * 13) % (w - 28), y + h - 12 + ((i * 7) % 8), 1, 1); }
+  }
   function draw(camX, camY) {
     for (const b of units) {
       if (b.state === "gone") continue;
       if (b.sub === "giant") { drawGiant(b, camX, camY); continue; }
       if (b.sub === "colossus") { drawColossus(b, camX, camY); continue; }
+      if (b.sub === "bigguy") {
+        const skin = b.hurtFlash > 0 ? "#ffb0a0" : "#f3c39a";
+        if (b.fState === "wind") {                        // telegraph the stomp column
+          const fx = Math.round(b.fX - camX);
+          ctx.fillStyle = ((b.animTimer >> 2) % 2) ? "rgba(255,70,70,0.18)" : "rgba(255,70,70,0.08)";
+          ctx.fillRect(fx - T.BIGGUY_FOOT_W / 2, 0, T.BIGGUY_FOOT_W, T.VIEW_H);
+        } else if (b.fState === "slam" || b.fState === "recover") {
+          drawBigLeg(Math.round(b.fX - T.BIGGUY_FOOT_W / 2 - camX), -160,
+                     T.BIGGUY_FOOT_W, Math.round(b.fY + T.BIGGUY_FOOT_H - camY), skin);
+        }
+        drawBigFace(b, camX, camY);
+        continue;
+      }
       if (b.iframes > 0 && b.hurtFlash <= 0 && (b.iframes >> 2) % 2 === 0) continue;
       if (b.state === "dying" && (b.animTimer >> 2) % 2 === 0) continue;
       if (b.sub === "badcode") { drawBadcode(b, camX, camY); continue; }

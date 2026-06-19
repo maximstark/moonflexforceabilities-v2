@@ -381,7 +381,7 @@ const UI = (() => {
     if (t > 60) { ctx.fillStyle = "#ffe48a"; ctx.font = "bold 11px monospace";
       ctx.fillText("THE BABIES ARE SAFE.", T.VIEW_W / 2, 96); }
     if (t > 150) { ctx.fillStyle = "#fff6d8"; ctx.font = "9px monospace";
-      ctx.fillText("the big hog dog is very sorry.", T.VIEW_W / 2, 112); }
+      ctx.fillText("every big bad dream is over now.", T.VIEW_W / 2, 112); }
     if (t > 240) { ctx.fillStyle = "#ffd9f0";
       ctx.fillText("the lake is quiet. the turtles came back.", T.VIEW_W / 2, 128); }
     if (t > 330 && (Game.frame >> 4) % 2) {
@@ -397,7 +397,8 @@ const UI = (() => {
     "starring:",
     "THE SWAN  ·  CHARMGIRL", "THE MERMAID  ·  THE MECHA SWAN",
     "the grumpis scrumption family", "(they have a family too)",
-    "the big hog dog (we hate him)", "the cat face who was an alligator", "",
+    "the big hog dog (we hate him)", "the cat face who was an alligator",
+    "the big guy upstairs (nice sandals)", "",
     "no babies were stolen permanently", "",
     "thank you for dreaming"
   ];
