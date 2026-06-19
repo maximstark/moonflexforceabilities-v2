@@ -37,6 +37,9 @@ const Bosses = (() => {
     } else if (kind === "giant") {
       units.push(giant(spec.x, spec.y, spec));
       arenaName = spec.name || "THE BIG GUY UPSTAIRS";
+    } else if (kind === "colossus") {
+      units.push(colossus(spec.x, spec.y, spec));
+      arenaName = spec.name || "THE BIG GUY IS FURIOUS";
     }
   }
   // a level's boss spec may oversize it (spec.size), buff it (spec.hp), rewrite its
@@ -58,6 +61,15 @@ const Bosses = (() => {
     state: "sleep", timer: 0, iframes: 0, hurtFlash: 0, facing: -1, vx: 0, vy: 0,
     animTimer: 0, rage: 1, dialogue: spec.dialogue || null,
     liftFoot: 0, lift: 0, retreat: 0 });
+  // THE REMATCH (world 11): a single furious foot that hovers above you and
+  // SLAMS down your column, over and over. Invulnerable mid-air — you can only
+  // hurt it in the brief beat it's planted. x,y = the foot's current AABB.
+  const colossus = (x, y, spec = {}) => ({
+    sub: "colossus", x, y, w: spec.footW || 56, h: 40,
+    hp: spec.hp || T.COLOSSUS_HP, maxHp: spec.hp || T.COLOSSUS_HP,
+    state: "hover", timer: T.COLOSSUS_HOVER_T, iframes: 0, hurtFlash: 0, facing: -1,
+    vx: 0, vy: 0, animTimer: 0, rage: 1, dialogue: spec.dialogue || null,
+    footX: x, slamX: x });
   const grumpis = (x, y, hp, phase = 0) => ({
     sub: "grumpis", sheet: "boss_grumpis", x, y, w: 52, h: 48, vx: 0, vy: 0,
     hp, maxHp: hp, state: "windup", timer: T.GRUMPIS_WINDUP + phase, iframes: 0,
@@ -78,6 +90,7 @@ const Bosses = (() => {
     const pl = nearestPlayer(units[0].x, units[0].y);
     if (!activated && pl &&
         (kind === "badcode" ? pl.x > units[0].triggerX
+                            : kind === "colossus" ? true
                             : Math.abs(pl.x - units[0].x) < T.BOSS_ACTIVATE_DIST)) {
       activated = true;
       AudioSys.sfx("roar");
@@ -95,6 +108,7 @@ const Bosses = (() => {
       else if (b.sub === "hog") updateHog(b, mult);
       else if (b.sub === "badcode") updateBadcode(b, mult);
       else if (b.sub === "giant") updateGiant(b, mult);
+      else if (b.sub === "colossus") updateColossus(b, mult);
       if (b.state !== "dying" && !b.fleeing) bossContact(b);
     }
     units = units.filter(b => b.state !== "gone");
@@ -258,6 +272,38 @@ const Bosses = (() => {
     b.x += b.vx; b.y += b.vy;                               // floats — no gravity, no tiles
   }
 
+  function updateColossus(b, mult) {
+    if (b.state === "dying") { b.y -= 6; if (--b.timer <= 0) dieOff(b); return; }
+    const pl = nearestPlayer(b.x + b.w / 2, b.y);
+    if (!pl) return;
+    b.rage = 1 + (1 - b.hp / b.maxHp) * 0.9;            // it gets MERCILESS as it takes damage
+    const r = b.rage * mult;
+    const cx = pl.x + pl.w / 2;
+    if (b.state !== "slam" && b.state !== "planted")    // track the player except mid-commit
+      b.footX += clamp(cx - b.footX, -T.COLOSSUS_TRACK * r, T.COLOSSUS_TRACK * r);
+    const hoverY = pl.y - T.COLOSSUS_HOVER;
+    if (b.state === "hover") {
+      b.x = b.footX - b.w / 2; b.y = hoverY;
+      if (--b.timer <= 0) { b.state = "slam"; b.slamX = b.footX; b.targetY = pl.y + pl.h - b.h + 8; }
+    } else if (b.state === "slam") {
+      b.x = b.slamX - b.w / 2;
+      b.y += T.COLOSSUS_SLAM_V * r;
+      if (b.y >= b.targetY) {                            // IMPACT
+        b.y = b.targetY; b.state = "planted"; b.timer = Math.round(T.COLOSSUS_PLANT / b.rage);
+        Game.shake = 14; AudioSys.sfx("pound");
+        World.burstAt(b.x + b.w / 2, b.y + b.h, "poof", 8);
+        Combat.poundShocks.push({ x: b.x + b.w / 2, y: b.y + b.h, life: 6 });
+      }
+    } else if (b.state === "planted") {                  // the one window you can hit it
+      b.x = b.slamX - b.w / 2;
+      if (--b.timer <= 0) b.state = "lift";
+    } else if (b.state === "lift") {
+      b.x = b.footX - b.w / 2;
+      b.y -= T.COLOSSUS_LIFT_V;
+      if (b.y <= hoverY) { b.y = hoverY; b.state = "hover"; b.timer = Math.round(T.COLOSSUS_HOVER_T / b.rage); }
+    }
+  }
+
   function updateGiant(b, mult) {
     const pl = nearestPlayer(b.x + b.w / 2, b.y);
     if (b.state === "sleep") {                          // first activated frame: the sun goes out
@@ -295,6 +341,24 @@ const Bosses = (() => {
 
   function bossContact(b) {
     if (b.sub === "papa" && !b.onLand && (b.state === "submerged" || b.state === "rising")) return;
+    if (b.sub === "colossus") {                          // the foot: deadly mid-air, safe (and hittable) when planted
+      const fb = { x: b.x, y: b.y, w: b.w, h: b.h };
+      for (const p of players) {
+        if (p.dead) continue;
+        const k = classifyContact(p, fb);
+        if (!k) continue;
+        if (b.state === "planted") {
+          if ((k === "stomp" || k === "moon") && b.iframes <= 0) {
+            damageBoss(b, p.pounding || p.form === "trex" || p.form === "mecha" ? 3 : 1);
+            if (k === "stomp") bouncePlayer(p);
+            Game.hitstop = T.HITSTOP_BOSS;
+          }
+        } else {
+          hurtPlayer(p, b.x + b.w / 2);                  // a slamming foot does not negotiate
+        }
+      }
+      return;
+    }
     const box = { x: b.x, y: b.y, w: b.w, h: b.h };
     for (const p of players) {
       if (p.dead) continue;
@@ -312,6 +376,7 @@ const Bosses = (() => {
 
   function damageBoss(b, dmg) {
     if (b.iframes > 0 || b.state === "dying" || b.fleeing) return false;
+    if (b.sub === "colossus" && b.state !== "planted") return false;   // the foot is armored in mid-air
     b.hp -= dmg;
     b.iframes = (b.sub === "badcode" || b.sub === "giant") ? 18 : T.BOSS_IFRAMES; b.hurtFlash = T.BOSS_HURT_FLASH;
     AudioSys.sfx("bossHurt");
@@ -322,6 +387,12 @@ const Bosses = (() => {
         Game.queueCard(['"YOU... YOU STUBBED MY BEST TOE!"', '"WITH YOUR... TOYS?!"', "",
                         '"I HAVE NEVER BEEN SO INSULTED IN A DREAM."',
                         '"i am LEAVING. and i am TELLING."']);
+        AudioSys.sfx("roar");
+      } else if (b.sub === "colossus") {               // the furious foot, finally beaten
+        b.state = "dying"; b.timer = T.BOSS_DEATH_FRAMES + 50; b.vx = 0; b.hurtFlash = 0;
+        Game.queueCard(['"AAGH! MY OTHER BEST TOE!"', "",
+                        '"fine. FINE. you win this dream, swan."',
+                        '"...i am keeping the sandals, though."']);
         AudioSys.sfx("roar");
       } else if (b.sub === "hog" && !b.final) {        // L5: he flees WITH THE BABIES
         b.fleeing = true; b.timer = 90; b.facing = 1; b.hurtFlash = 0;
@@ -428,10 +499,30 @@ const Bosses = (() => {
       ctx.fillStyle = "#f7d9c0"; ctx.beginPath(); ctx.arc(fx - 2, fy + 2, 1.4, 0, Math.PI * 2); ctx.fill();  // the BEST toe's nail
     }
   }
+  function drawColossus(b, camX, camY) {
+    const x = Math.round(b.x - camX), y = Math.round(b.y - camY), w = b.w, h = b.h;
+    const hurt = b.hurtFlash > 0;
+    const skin = hurt ? "#ffb0a0" : "#f3c39a", skinDk = hurt ? "#e0907c" : "#d29b6e";
+    if (b.state === "hover") {                            // a pulsing danger lane telegraphs the slam
+      ctx.fillStyle = ((b.animTimer >> 2) % 2) ? "rgba(255,70,70,0.18)" : "rgba(255,70,70,0.08)";
+      ctx.fillRect(x + 3, y + h, w - 6, 360);
+    }
+    const legX = Math.round(x + w * 0.16), legW = Math.round(w * 0.68);
+    ctx.fillStyle = skin; ctx.fillRect(legX, -160, legW, y + 8 + 160);   // leg up off the top
+    ctx.fillStyle = skinDk; ctx.fillRect(legX, y - 2, legW, 4);
+    ctx.fillStyle = skin; ctx.fillRect(x, y, w, h - 6);                  // foot
+    ctx.fillStyle = "#5a3b22";                                          // straps
+    ctx.fillRect(x + 4, y + 3, w - 8, 3); ctx.fillRect(x + 7, y + 8, w - 14, 3);
+    ctx.fillStyle = "#caa46a"; ctx.fillRect(x - 2, y + h - 7, w + 4, 7);   // cork sole (bottom — it stomps)
+    ctx.fillStyle = "#9c7b46"; ctx.fillRect(x - 2, y + h - 2, w + 4, 2);
+    ctx.fillStyle = skin;                                               // toes along the bottom front
+    for (let t = 0; t < 5; t++) { const r = (5 - t) * 0.8; ctx.beginPath(); ctx.arc(x + 3 + t * 2.4, y + h - 6, r, 0, Math.PI * 2); ctx.fill(); }
+  }
   function draw(camX, camY) {
     for (const b of units) {
       if (b.state === "gone") continue;
       if (b.sub === "giant") { drawGiant(b, camX, camY); continue; }
+      if (b.sub === "colossus") { drawColossus(b, camX, camY); continue; }
       if (b.iframes > 0 && b.hurtFlash <= 0 && (b.iframes >> 2) % 2 === 0) continue;
       if (b.state === "dying" && (b.animTimer >> 2) % 2 === 0) continue;
       if (b.sub === "badcode") { drawBadcode(b, camX, camY); continue; }

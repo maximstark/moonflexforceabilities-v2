@@ -413,6 +413,31 @@ async function main() {
   for (let i = 0; i < 500 && !trophy10; i++) { if (Game.state === "card") tap(menuPad, "confirm"); step(); trophy10 = World.pickups.find(pk => pk.type === "trophy"); }
   check("the giant storms off and the world clears (trophy)", !!trophy10);
 
+  /* ============ L11: THE LONG WAY UP — the furious slamming foot ============ */
+  await gotoLevel(11); step(10);
+  check("L11 THE LONG WAY UP loads (tall)", level.name === "THE LONG WAY UP" && level.grid.length >= 60,
+        level.name + "/" + level.grid.length);
+  check("L11 is thick with bugs (30+ flyers)",
+        enemies.filter(e => e.type === "fly" || e.type === "wisp").length >= 30,
+        enemies.filter(e => e.type === "fly" || e.type === "wisp").length);
+  const foot = Bosses.units[0];
+  check("the colossus foot looms", foot && foot.sub === "colossus", foot ? foot.sub : "none");
+  for (let i = 0; i < 5; i++) { P().x = 3 * 16; P().y = 58 * 16; P().iframes = 9999; step(); }
+  check("the foot wakes at once (the rematch is on)", Bosses.activated);
+  // armored in mid-air — only hittable in the brief beat it's planted
+  foot.state = "hover"; foot.iframes = 0; const hp0 = foot.hp;
+  Bosses.hitByBox({ x: foot.x, y: foot.y, w: foot.w, h: foot.h }, 3);
+  check("the foot shrugs off hits while airborne", foot.hp === hp0, foot.hp + "/" + hp0);
+  foot.state = "planted"; foot.iframes = 0;
+  Bosses.hitByBox({ x: foot.x, y: foot.y, w: foot.w, h: foot.h }, 3);
+  check("a PLANTED foot can be hit", foot.hp < hp0, foot.hp + "/" + hp0);
+  let safety = 0;
+  while (foot.hp > 0 && safety++ < 60) { foot.state = "planted"; foot.iframes = 0; Bosses.hitByBox({ x: foot.x, y: foot.y, w: foot.w, h: foot.h }, 3); }
+  check("the furious foot can (barely) be beaten", foot.hp <= 0, foot.hp);
+  let trophy11 = null;
+  for (let i = 0; i < 500 && !trophy11; i++) { if (Game.state === "card") tap(menuPad, "confirm"); P().x = 14 * 16; P().y = 6 * 16; P().iframes = 9999; step(); trophy11 = World.pickups.find(pk => pk.type === "trophy"); }
+  check("beating the foot clears the climb (summit trophy)", !!trophy11);
+
   /* ============ level data integrity: rectangular grids, in-range tiles ============ */
   // (a jagged row makes grid[y][x] undefined -> drawTiles crashes once it scrolls on-screen)
   for (let i = 1; i <= T.WORLD_COUNT; i++) {
@@ -426,7 +451,7 @@ async function main() {
   }
 
   /* ============ the finale path (gated code: beads -> ending -> credits -> scores) ============ */
-  await gotoLevel(10); Bosses.spawn(); step(5);          // clear the giant so the fabricated beads aren't interrupted
+  await gotoLevel(11); Bosses.spawn(); step(5);          // clear the foot so the fabricated beads aren't interrupted
   level.finale = true;                                   // fabricate: no shipped level sets it yet
   World.spawnTrophy("beads");
   const beads = World.pickups.find(pk => pk.type === "beads");

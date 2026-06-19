@@ -479,6 +479,60 @@ def level10():
     v.goalX = 128*TS
     return v
 
+# =====================================================================
+#  LEVEL 11 — THE LONG WAY UP  (the rematch: a tall, narrow, abusive climb;
+#  the giant's FOOT crams down your column the whole way; the sky is thick
+#  with bugs; precise jumps; very few will ever beat it)
+# =====================================================================
+def level11():
+    v = L("THE LONG WAY UP", 11, 28, 66, "sky_finale", "", "fever", drain=0.03)   # no parallax (tall)
+    v.next = None
+    v.spawn = (3*TS, 58*TS)
+    v.startHappy = 120
+    v.story = [
+        ["THE BIG GUY IS BACK.", "", "and he is STILL mad about his toe.", "(he has told absolutely everyone.)"],
+        ["he won't come all the way down here.", "", "but his FOOT will. again. and again.",
+         "climb. do NOT get squished."],
+        ["the sky is THICK with furious bugs.", "", "this is the hard part, brave swan.",
+         "almost nobody makes it. good luck."],
+    ]
+    R, F, P = "rock_top", "rock_fill", "platform"
+    # the walled shaft + a solid bottom floor
+    v.fill(0, 0, 0, 65, F); v.fill(27, 27, 0, 65, F)
+    v.ground(1, 26, 60, R, F, edges=False)
+    v.deco([(2, 59, "sign"), (24, 59, "lantern")])
+    # the climb: a serpentine of narrow one-way ledges (every 3 rows; precise jumps)
+    rows = list(range(57, 8, -3))
+    seq = [2, 5, 8, 11, 14, 17, 20, 17, 14, 11, 8, 5]
+    ledges = []
+    for i, r in enumerate(rows):
+        c0 = seq[i % len(seq)]
+        v.plat(c0, c0+2, r, P)
+        ledges.append((c0, r))
+        if i % 5 == 2: v.set(c0+1, r, "spring1")          # a few springs (help — or overshoot into the foot)
+        if i % 4 == 3: v.set(c0+2, r, "fire1")            # a few fiery ledge-ends to land around
+        if i % 3 == 0: v.pick("treat", c0+1, r-1)         # happiness to survive the long way
+    # the summit: a solid stage for the final, merciless beat
+    v.plat(9, 19, 6, R)
+    v.deco([(10, 5, "lantern"), (18, 5, "lantern")])
+    # the abusive swarm — bugs every which way, all the way up
+    fi = 0
+    for r in range(56, 8, -2):
+        v.enemy("fly", 3 + (fi * 7) % 21, r); fi += 1
+        if r % 4 == 0: v.enemy("wisp", 3 + (fi * 5) % 21, r - 1)
+        if r % 6 == 0: v.enemy("fly", 3 + (fi * 11) % 21, r - 2)
+    # gear up at the bottom (you will want everything — and it still won't be enough)
+    v.pick("chest", 6, 59); v.pick("chest", 13, 59); v.pick("chest", 20, 59)
+    for c in (3, 5, 8, 11, 14, 17, 20, 23): v.pick("star", c, 59)
+    for c in (6, 13, 20): v.pick("star", c, 58)
+    for c in (10, 17): v.pick("star", c, 57)
+    v.pick("treat", 4, 59); v.pick("treat", 23, 59)
+    v.pick("moon", 13, 57)
+    # THE FURIOUS FOOT
+    v.boss = dict(type="colossus", x=13*TS, y=2*TS, hp=9, name="THE BIG GUY IS FURIOUS")
+    v.goalX = 14*TS
+    return v
+
 def hub():
     v = L("HOME", 0, 26, 62, "sky_hub", "par_hub", "hub", drain=0.0)
     v.spawn = (5*TS, 57*TS)
@@ -523,5 +577,6 @@ if __name__ == "__main__":
     level7().out("level7.json")
     level8().out("level8.json")
     level10().out("level10.json")
+    level11().out("level11.json")
     hub().out("hub.json")
     print("all levels written")

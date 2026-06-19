@@ -19,6 +19,7 @@ const Overworld = (() => {
     { id: 8, x: 520, y: 188, label: "8   THE LONG FALL" },
     { id: 9, x: 580, y: 150, label: "9   SECRET COVE" },
     { id: 10, x: 640, y: 188, label: "10  THE NICE PLACE" },
+    { id: 11, x: 700, y: 150, label: "11  THE LONG WAY UP" },
   ];
   let idx = 1, tx = NODES[1].x, ty = NODES[1].y;
   let moving = false, from = 1, to = 1, mt = 0, fr = 0, camX = 0;

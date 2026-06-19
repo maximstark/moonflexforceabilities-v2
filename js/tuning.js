@@ -88,6 +88,9 @@ const TUNING = {
   BOSS_ACTIVATE_DIST: 280, BOSS_DEATH_FRAMES: 80,
   BADCODE_HP: 45, BADCODE_SPEED: 1.4,   // the chasing bad-dreams mass (clearly slower than the swan)
   GIANT_HP: 3, GIANT_STOMP_GAP: 150, GIANT_WINDUP: 70, GIANT_STOMP: 16, GIANT_RECOVER: 90,  // looks terrifying, dies in 3
+  // the rematch (world 11): a relentless slamming foot — only hittable while it's planted
+  COLOSSUS_HP: 9, COLOSSUS_HOVER: 150, COLOSSUS_HOVER_T: 50, COLOSSUS_SLAM_V: 12,
+  COLOSSUS_LIFT_V: 6, COLOSSUS_PLANT: 40, COLOSSUS_TRACK: 1.7,
 
   // --- scoring ---
   POINTS_POPCORN: 50, POINTS_STOMP: 100, POINTS_BOSS: 5000,
@@ -95,7 +98,7 @@ const TUNING = {
   NAME_MAX_LEN: 8,
 
   // --- progression ---
-  WORLD_COUNT: 10,                 // number of worlds (the finale level sets finale:true)
+  WORLD_COUNT: 11,                 // number of worlds (the finale level sets finale:true)
 
   // --- camera & juice ---
   CAM_LERP: 0.12, CAM_LOOKAHEAD: 24, SHAKE_FRAMES: 6,
