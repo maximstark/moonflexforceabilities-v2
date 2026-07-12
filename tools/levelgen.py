@@ -538,7 +538,7 @@ def level11():
 #  climb to his leaning face and finish it, dodging the stomping foot)
 # =====================================================================
 def level12():
-    v = L("THE BIGGEST DREAM", 12, 44, 32, "sky_finale", "", "mecha", drain=0.03)
+    v = L("THE BIGGEST DREAM", 12, 44, 32, "sky_finale", "", "biggest", drain=0.03)
     v.next = None
     v.finale = True                     # wires the beads -> ending -> credits payoff
     v.letterCost = 1000000

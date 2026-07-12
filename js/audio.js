@@ -96,6 +96,11 @@ const AudioSys = (() => {
       ["square",.24,0,"g4 - e4 - c4 - e4 - g4 - a4 - g4 - - - f4 - d4 - b3 - d4 - f4 - e4 - c4 - - -"],
       ["triangle",.45,0,"c3 - - - e2 - - - f2 - - - g2 - - - g2 - - - b2 - - - c3 - - - c3 - - -"],
       ["drums",.4,0,". . h . . . h . . . h . . . h ."]]},
+    biggest: { bpm: 144, tracks: [   // THE BIGGEST DREAM — the whole big guy deserves his own song
+      ["square",.28,0,"a3 - c4 - e4 - a4 - g4 - e4 - c4 - e4 - f4 - a4 - c5 - b4 a4 g4 - e4 - a4 - - -"],
+      ["square",.14,-7,"e3 - a3 - c4 - e4 - e4 - c4 - a3 - c4 - d4 - f4 - a4 - g4 f4 e4 - c4 - e4 - - -"],
+      ["triangle",.55,0,"a2 a2 - a2 a2 - a2 - f2 f2 - f2 f2 - f2 - g2 g2 - g2 g2 - g2 - e2 e2 - e2 g2 - a2 -"],
+      ["drums",.7,0,"k . h . s . h h k . h . s . h k"]]},
     ending: { bpm: 66, tracks: [
       ["triangle",.45,0,"c4 - e4 - g4 - - - a4 - g4 - e4 - - - f4 - e4 - d4 - - - c4 - - - - - - -"],
       ["triangle",.3,0,"c3 - - - - - - - f2 - - - - - - - a2 - - - g2 - - - c3 - - - - - - -"],
