@@ -176,10 +176,14 @@ def frog_frames():
             d.ellipse([ex-3,top-5,ex+3,top+2],fill=FGN); d.ellipse([ex-2,top-4,ex+2,top+1],fill=EYEW); d.point((ex,top-2),fill=EYE)
         d.arc([9,top+6,17,top+12],10,170,fill=EYE)
     def f_idle(): im=cell(W,H);base(ImageDraw.Draw(im));return outline(im,W,H)
+    def f_crouch():
+        im=cell(W,H);d=ImageDraw.Draw(im);base(d,3)
+        d.line([(5,19),(1,21)],fill=FGND,width=2);d.line([(21,19),(25,21)],fill=FGND,width=2)
+        return outline(im,W,H)
     def f_hop():
         im=cell(W,H);d=ImageDraw.Draw(im);base(d,-3)
         d.line([(4,16),(1,12)],fill=FGND,width=2);d.line([(22,16),(25,12)],fill=FGND,width=2);return outline(im,W,H)
-    return (W,H,[f_idle(),f_hop()],["idle","hop"])
+    return (W,H,[f_idle(),f_crouch(),f_hop()],["idle","crouch","hop"])
 def roach_frames():
     W,H=30,16
     def base(d,ph):

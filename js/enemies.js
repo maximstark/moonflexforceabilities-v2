@@ -431,7 +431,7 @@ function drawEnemies(camX, camY) {
   }
 }
 function enemyFrame(e) {
-  if (e.type === "frog") return e.state === "air" ? "hop" : "idle";
+  if (e.type === "frog") return e.state === "air" ? "hop" : e.state === "windup" ? "crouch" : "idle";
   if (e.type === "cockroach") return (e.animTimer >> 3) % 2 ? "scuttle2" : "scuttle1";
   if (e.type === "dino") return (e.animTimer >> 4) % 2 ? "walk2" : "walk1";
   if (e.type === "fish") return (e.animTimer >> 3) % 2 ? "swim2" : "swim1";
