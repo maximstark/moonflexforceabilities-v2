@@ -4,8 +4,11 @@
     "frame_h": 36,
     "frames": [
       "idle",
+      "blink",
       "walk1",
       "walk2",
+      "walk3",
+      "walk4",
       "jump",
       "swim1",
       "swim2"
@@ -149,6 +152,24 @@
       "swim2"
     ],
     "file": "assets/fish.png"
+  },
+  "wisp": {
+    "frame_w": 18,
+    "frame_h": 18,
+    "frames": [
+      "bob1",
+      "bob2"
+    ],
+    "file": "assets/wisp.png"
+  },
+  "fly": {
+    "frame_w": 22,
+    "frame_h": 16,
+    "frames": [
+      "buzz1",
+      "buzz2"
+    ],
+    "file": "assets/fly.png"
   },
   "turtles": {
     "frame_w": 96,
@@ -410,23 +431,5 @@
       "s"
     ],
     "file": "assets/par_finale.png"
-  },
-  "wisp": {
-    "frame_w": 18,
-    "frame_h": 18,
-    "frames": [
-      "bob1",
-      "bob2"
-    ],
-    "file": "assets/wisp.png"
-  },
-  "fly": {
-    "frame_w": 22,
-    "frame_h": 16,
-    "frames": [
-      "buzz1",
-      "buzz2"
-    ],
-    "file": "assets/fly.png"
   }
 }

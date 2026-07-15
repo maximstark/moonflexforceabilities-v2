@@ -57,14 +57,17 @@ def swan_frames():
     def body(d,low=0):
         d.ellipse([5,17+low,31,31+low],fill=WHITE); d.ellipse([7,24+low,30,32+low],fill=LAV)
         d.ellipse([10,27+low,27,32+low],fill=LAV2); d.polygon([(7,18+low),(3,13+low),(10,19+low)],fill=WHITE)
-    def head(d,dx=0,dy=0,low=0):
+    def head(d,dx=0,dy=0,low=0,blink=False):
         d.ellipse([28+dx,1+dy+low,37+dx,9+dy+low],fill=WHITE)
         d.ellipse([29+dx,2+dy+low,33+dx,5+dy+low],fill=HI)              # forehead shine
         d.polygon([(36+dx,4+dy+low),(40+dx,5+dy+low),(36+dx,7+dy+low)],fill=BEAK)
         d.point((38+dx,5+dy+low),fill=BEAKS)
         d.ellipse([30+dx,6+dy+low,32+dx,8+dy+low],fill=BLUSH)           # rosy cheek
-        d.rectangle([32+dx,3+dy+low,33+dx,4+dy+low],fill=EYE)
-        d.point((33+dx,3+dy+low),fill=EYEW)                            # eye catchlight
+        if blink:
+            d.line([(31+dx,4+dy+low),(34+dx,4+dy+low)],fill=EYE,width=1)
+        else:
+            d.rectangle([32+dx,3+dy+low,33+dx,4+dy+low],fill=EYE)
+            d.point((33+dx,3+dy+low),fill=EYEW)                        # eye catchlight
     def wing(d,low=0):
         d.ellipse([9,18+low,26,28+low],fill=WHITE)
         for x in [13,17,21]: d.line([(x,20+low),(x+3,26+low)],fill=LAV,width=1)
@@ -75,10 +78,12 @@ def swan_frames():
         d.line([(x-2+fx,33-lift),(x+2+fx,33-lift)],fill=FOOT,width=1); d.point((x+fx,33-lift),fill=FOOTS)
     def f_idle():
         im=cell(W,H);d=ImageDraw.Draw(im);body(d);leg(d,15);leg(d,20);neck(d);wing(d);head(d);return outline(im,W,H)
-    def f_walk(sw):
+    def f_blink():
+        im=cell(W,H);d=ImageDraw.Draw(im);body(d);leg(d,15);leg(d,20);neck(d);wing(d);head(d,blink=True);return outline(im,W,H)
+    def f_walk(sw,low=0):
         im=cell(W,H);d=ImageDraw.Draw(im);body(d)
         (leg(d,14,-2,0),leg(d,21,2,2)) if sw else (leg(d,14,2,2),leg(d,21,-2,0))
-        neck(d,sw,-sw);wing(d);head(d,sw,-sw);return outline(im,W,H)
+        neck(d,sw,-sw+low);wing(d,low);head(d,sw,-sw+low);return outline(im,W,H)
     def f_jump():
         im=cell(W,H);d=ImageDraw.Draw(im);body(d)
         d.line([(15,31),(13,33)],fill=FOOT,width=1);d.line([(20,31),(22,33)],fill=FOOT,width=1)
@@ -89,8 +94,8 @@ def swan_frames():
         im=cell(W,H);d=ImageDraw.Draw(im);body(d,low=3+bob);wing(d,low=3+bob);neck(d,low=bob);head(d,low=bob)
         for wx in (4,32): d.line([(wx,33),(wx+4,33)],fill=LAV2,width=1)
         return outline(im,W,H)
-    return (W,H,[f_idle(),f_walk(True),f_walk(False),f_jump(),f_swim(0),f_swim(2)],
-            ["idle","walk1","walk2","jump","swim1","swim2"])
+    return (W,H,[f_idle(),f_blink(),f_walk(True),f_walk(False),f_walk(True,1),f_walk(False,1),f_jump(),f_swim(0),f_swim(2)],
+            ["idle","blink","walk1","walk2","walk3","walk4","jump","swim1","swim2"])
 
 def mermaid_frames():
     W,H=40,40
@@ -202,12 +207,17 @@ def tiles_frames():
     W,H=16,16
     def grass_top():
         im=cell(W,H);d=ImageDraw.Draw(im);d.rectangle([0,5,15,15],fill=DIRT);d.rectangle([0,5,15,7],fill=GRASS)
-        for x in range(0,16,3): d.line([(x,5),(x,2)],fill=GRASS,width=1);d.point((x,2),fill=GRASSD)
-        for x in (3,9,13): d.point((x,10),fill=DIRTD)
+        d.line([(0,8),(15,8)],fill=(112,76,56,255),width=1)
+        for x in range(0,16,3):
+            d.line([(x,6),(x-1 if x%2 else x+1,1+(x%3))],fill=GRASS,width=1)
+            d.point((x,2),fill=(168,210,102,255))
+        for x,y in ((3,11),(9,10),(13,13),(6,15)): d.point((x,y),fill=DIRTD)
+        d.point((11,4),fill=(244,184,198,255)); d.point((12,3),fill=(255,226,154,255))
         return im
     def dirt():
         im=cell(W,H);d=ImageDraw.Draw(im);d.rectangle([0,0,15,15],fill=DIRT)
-        for x,y in [(3,4),(9,2),(12,9),(5,11),(1,8)]: d.point((x,y),fill=DIRTD)
+        for x,y in [(3,4),(9,2),(12,9),(5,11),(1,8),(14,14)]: d.point((x,y),fill=DIRTD)
+        d.line([(7,5),(8,6),(7,8)],fill=(155,108,76,255),width=1)
         return im
     def edge(left):
         im=cell(W,H);d=ImageDraw.Draw(im);d.rectangle([0,0,15,15],fill=DIRT);d.rectangle([0,0,15,2],fill=GRASS)
@@ -219,8 +229,9 @@ def tiles_frames():
         for x in range(1,15,3): d.point((x,2),fill=GRASSD)
         return im
     def lilypad():
-        im=cell(W,H);d=ImageDraw.Draw(im);d.ellipse([1,6,14,14],fill=GRASS);d.ellipse([2,7,13,13],fill=GRASSD)
-        d.polygon([(8,10),(8,6),(11,8)],fill=(20,40,30,255));heart(d,6,3,4,4,PETAL);return im
+        im=cell(W,H);d=ImageDraw.Draw(im);d.ellipse([1,6,14,14],fill=GRASSD);d.ellipse([2,6,13,12],fill=GRASS)
+        d.arc([3,7,12,13],10,170,fill=(165,210,100,255));d.line([(8,10),(8,6)],fill=GRASSD,width=1)
+        d.polygon([(8,10),(8,6),(11,8)],fill=(28,63,43,255));heart(d,6,2,5,5,PETAL);d.point((8,3),fill=(255,225,160,255));return im
     def cattail():
         im=cell(W,H);d=ImageDraw.Draw(im)
         for bx in (5,10): d.line([(bx,15),(bx,4)],fill=GRASSD,width=1); d.rounded_rectangle([bx-1,4,bx+1,9],1,fill=RBR)

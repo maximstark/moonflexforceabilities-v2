@@ -492,7 +492,9 @@ function drawPlayer(p, camX, camY) {
           : (p.animTimer >> 3) % 2 ? "swim2" : "swim1";
   } else {
     sheet = "swan";
-    frame = !p.grounded ? "jump" : moving ? ((p.animTimer >> 3) % 2 ? "walk2" : "walk1") : "idle";
+    if (!p.grounded) frame = "jump";
+    else if (moving) frame = ["walk1", "walk2", "walk3", "walk4"][(p.animTimer >> 2) % 4];
+    else frame = p.animTimer % 180 < 7 ? "blink" : "idle";
   }
   const s = sheets[sheet];
   const dx = p.x + p.w / 2 - s.frame_w / 2 - camX;
