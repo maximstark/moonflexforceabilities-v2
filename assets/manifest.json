@@ -14,18 +14,20 @@
       "swim2"
     ],
     "file": "assets/swan.png",
+    "draw_w": 40,
+    "draw_h": 36,
     "anchor": [
-      40,
-      68
+      20,
+      34
     ],
     "attachments": {
       "head": [
-        65,
-        12
+        32.5,
+        6
       ],
       "feet": [
-        40,
-        68
+        20,
+        34
       ]
     }
   },

@@ -297,8 +297,10 @@ for name,fn in REGISTRY.items():
     sheet.save(f"{OUT}/{name}.png")
     manifest[name]={"frame_w":w,"frame_h":h,"frames":labels,"file":f"assets/{name}.png"}
     if name == "swan":
-        manifest[name]["anchor"]=[40,68]
-        manifest[name]["attachments"]={"head":[65,12],"feet":[40,68]}
+        manifest[name]["draw_w"]=40
+        manifest[name]["draw_h"]=36
+        manifest[name]["anchor"]=[20,34]
+        manifest[name]["attachments"]={"head":[32.5,6],"feet":[20,34]}
     rows.append((name,w,h,frames,labels))
 json.dump(manifest,open(f"{OUT}/manifest.json","w"),indent=2)
 

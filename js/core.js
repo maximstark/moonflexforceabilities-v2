@@ -73,7 +73,8 @@ async function loadAssets() {
     const img = new Image();
     img.onload = () => {
       sheets[name] = { img, frame_w: m.frame_w, frame_h: m.frame_h, frames: m.frames,
-                       anchor: m.anchor || [m.frame_w / 2, m.frame_h],
+                       draw_w: m.draw_w || m.frame_w, draw_h: m.draw_h || m.frame_h,
+                       anchor: m.anchor || [(m.draw_w || m.frame_w) / 2, m.draw_h || m.frame_h],
                        attachments: m.attachments || {},
                        index: Object.fromEntries(m.frames.map((f, i) => [f, i])) };
       res();
@@ -90,15 +91,16 @@ let TILE_LOOKUP = null;
 
 function drawFrame(name, frame, x, y, flip = false, flipV = false) {
   const s = sheets[name], i = s.index[frame];
+  const w = s.draw_w, h = s.draw_h;
   x = Math.round(x); y = Math.round(y);
   if (!flip && !flipV) {
-    ctx.drawImage(s.img, i * s.frame_w, 0, s.frame_w, s.frame_h, x, y, s.frame_w, s.frame_h);
+    ctx.drawImage(s.img, i * s.frame_w, 0, s.frame_w, s.frame_h, x, y, w, h);
     return;
   }
   ctx.save();
-  ctx.translate(x + (flip ? s.frame_w : 0), y + (flipV ? s.frame_h : 0));
+  ctx.translate(x + (flip ? w : 0), y + (flipV ? h : 0));
   ctx.scale(flip ? -1 : 1, flipV ? -1 : 1);
-  ctx.drawImage(s.img, i * s.frame_w, 0, s.frame_w, s.frame_h, 0, 0, s.frame_w, s.frame_h);
+  ctx.drawImage(s.img, i * s.frame_w, 0, s.frame_w, s.frame_h, 0, 0, w, h);
   ctx.restore();
 }
 function drawStretched(name, frame, x, y, w, h) {

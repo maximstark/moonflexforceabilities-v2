@@ -497,8 +497,8 @@ function drawPlayer(p, camX, camY) {
     else frame = p.animTimer % 180 < 7 ? "blink" : "idle";
   }
   const s = sheets[sheet];
-  const anchor = s.anchor || [s.frame_w / 2, s.frame_h];
-  const dx = p.x + p.w / 2 - (p.facing < 0 ? s.frame_w - anchor[0] : anchor[0]) - camX;
+  const anchor = s.anchor || [s.draw_w / 2, s.draw_h];
+  const dx = p.x + p.w / 2 - (p.facing < 0 ? s.draw_w - anchor[0] : anchor[0]) - camX;
   const dy = p.y + p.h - anchor[1] - camY;
   const flip = p.facing < 0;
 
@@ -506,7 +506,7 @@ function drawPlayer(p, camX, camY) {
   if (p.trail && p.trail.length) {
     for (const g of p.trail) {
       ctx.globalAlpha = 0.08 + 0.14 * (g.t / 12);
-      const ga = g.facing < 0 ? s.frame_w - anchor[0] : anchor[0];
+      const ga = g.facing < 0 ? s.draw_w - anchor[0] : anchor[0];
       drawFrame(sheet, frame, g.x + p.w / 2 - ga - camX,
                 g.y + p.h - anchor[1] - camY, g.facing < 0);
     }
@@ -516,7 +516,7 @@ function drawPlayer(p, camX, camY) {
   // squash & stretch around the feet
   if (Math.abs(p.squash) > 0.02) {
     ctx.save();
-    ctx.translate(Math.round(dx + s.frame_w / 2), Math.round(p.y + p.h - camY));
+    ctx.translate(Math.round(dx + s.draw_w / 2), Math.round(p.y + p.h - camY));
     ctx.scale(1 + p.squash * 0.6, 1 - p.squash);
     drawSheetCentered(s, frame, flip);
     ctx.restore();
@@ -529,8 +529,8 @@ function drawPlayer(p, camX, camY) {
 
   // worn costume overlays (the visible stack)
   const cx = p.x + p.w / 2 - camX, footY = p.y + p.h - camY;
-  const head = s.attachments.head || [anchor[0], Math.max(4, anchor[1] - s.frame_h + 4)];
-  const headX = dx + (flip ? s.frame_w - head[0] : head[0]);
+  const head = s.attachments.head || [anchor[0], Math.max(4, anchor[1] - s.draw_h + 4)];
+  const headX = dx + (flip ? s.draw_w - head[0] : head[0]);
   const headY = dy + head[1];
   if (has(p, "goosefeet")) drawFrame("gear", "goosefeet", cx - 14, footY - 24, flip);
   if (has(p, "laser") && p.form !== "mecha") drawFrame("gear", "visor", headX - 14, headY - 8, flip);
@@ -566,6 +566,6 @@ function drawSheetCentered(s, frame, flip) {
   ctx.save();
   if (flip) ctx.scale(-1, 1);
   ctx.drawImage(s.img, i * s.frame_w, 0, s.frame_w, s.frame_h,
-                -s.frame_w / 2, -s.frame_h, s.frame_w, s.frame_h);
+                -s.draw_w / 2, -s.draw_h, s.draw_w, s.draw_h);
   ctx.restore();
 }
