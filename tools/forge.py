@@ -44,7 +44,41 @@ def heart(d,x0,y0,w,h,col):
     d.ellipse([x0+w*0.45,y0,x0+w,y0+h*0.6],fill=col)
     d.polygon([(x0,y0+h*0.32),(x0+w,y0+h*0.32),(x0+w*0.5,y0+h)],fill=col)
 
+def swan_pose_board_frames(path):
+    """Normalize the approved 3x3 concept board into an anchored 80x72 atlas."""
+    board=Image.open(path).convert("RGBA")
+    cw,ch=board.width//3,board.height//3
+    cells=[]
+    for row in range(3):
+        for col in range(3):
+            pose=board.crop((col*cw,row*ch,(col+1)*cw,(row+1)*ch))
+            bbox=pose.getbbox()
+            cells.append(pose.crop(bbox) if bbox else pose)
+    # One scale across every pose prevents the character from growing and
+    # shrinking between frames. Baselines remain locked at y=69.
+    scale=min(76/max(p.width for p in cells),68/max(p.height for p in cells))
+    frames=[]
+    for idx,pose in enumerate(cells):
+        size=(max(1,round(pose.width*scale)),max(1,round(pose.height*scale)))
+        pose=pose.resize(size,Image.Resampling.LANCZOS)
+        if idx in (7,8):
+            # Water belongs to the world, not the body atlas. Strip the blue
+            # concept-board water while retaining the white/lavender Swan;
+            # the renderer adds a surface-aligned ripple in motion.
+            px=pose.load()
+            for y in range(pose.height//2,pose.height):
+                for x in range(pose.width):
+                    r,g,b,a=px[x,y]
+                    if a and g > r+5 and b > r+10: px[x,y]=(r,g,b,0)
+        frame=cell(80,72)
+        frame.alpha_composite(pose,((80-size[0])//2,69-size[1]))
+        frames.append(frame)
+    labels=["idle","preen","idle2","walk1","walk2","walk3","jump","swim1","swim2"]
+    return 80,72,frames,labels
+
 def swan_frames():
+    concept="art/source/swan_pose_board.png"
+    if os.path.exists(concept): return swan_pose_board_frames(concept)
     W,H=40,36
     HI=(255,255,255,255); BLUSH=(247,176,198,255)
     def neck(d,dx=0,dy=0,low=0):

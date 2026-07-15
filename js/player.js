@@ -493,8 +493,9 @@ function drawPlayer(p, camX, camY) {
   } else {
     sheet = "swan";
     if (!p.grounded) frame = "jump";
-    else if (moving) frame = ["walk1", "walk2", "walk3", "walk4"][(p.animTimer >> 2) % 4];
-    else frame = p.animTimer % 180 < 7 ? "blink" : "idle";
+    else if (moving) frame = ["walk1", "walk2", "walk3", "walk2"][(p.animTimer >> 2) % 4];
+    else if (p.animTimer % 360 < 28) frame = "preen";
+    else frame = (p.animTimer >> 6) % 2 ? "idle2" : "idle";
   }
   const s = sheets[sheet];
   const anchor = s.anchor || [s.draw_w / 2, s.draw_h];
@@ -522,6 +523,11 @@ function drawPlayer(p, camX, camY) {
     ctx.restore();
   } else {
     drawFrame(sheet, frame, dx, dy, flip);
+  }
+  if (p.inWater && p.form === "swan") {
+    const wr = pointInWater(p.x + p.w / 2, p.y + p.h / 2);
+    if (wr && p.y + p.h / 2 - wr.y < T.WATER_EXIT_ZONE + 5)
+      drawSwanWake(p, wr.y - camY, cxForWake(p, camX), frame === "swim2");
   }
   // moonflex shimmer
   if (p.moonTimer > 0 && p.character === "swan" && p.animTimer % 4 === 0)
@@ -560,6 +566,25 @@ function drawPlayer(p, camX, camY) {
     const by = p.y + Math.sin((p.animTimer + i * 20) / 9) * 3 - camY;
     drawFrame("babyswan", (p.animTimer >> 4 + i) % 2 ? "bob2" : "bob1", bx, by, flip);
   }
+}
+function cxForWake(p, camX) { return p.x + p.w / 2 - camX; }
+function drawSwanWake(p, surfaceY, x, strong) {
+  const pulse = Math.sin(p.animTimer / 5) * 1.5;
+  ctx.save();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = strong ? "rgba(224,248,255,0.92)" : "rgba(205,238,250,0.68)";
+  ctx.beginPath(); ctx.ellipse(x, surfaceY, 12 + pulse + (strong ? 5 : 0), 2.5, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = "rgba(104,183,220,0.72)";
+  ctx.beginPath(); ctx.ellipse(x - p.facing * 5, surfaceY + 2, 17 + pulse, 3.5, 0, 0, Math.PI); ctx.stroke();
+  if (strong) {
+    ctx.fillStyle = "rgba(235,251,255,0.9)";
+    for (let i = 0; i < 4; i++) {
+      const side = i < 2 ? -1 : 1, ox = side * (10 + (i % 2) * 5);
+      const oy = -4 - (i % 2) * 3 + Math.sin(p.animTimer / 4 + i);
+      ctx.fillRect(Math.round(x + ox), Math.round(surfaceY + oy), 2, 2);
+    }
+  }
+  ctx.restore();
 }
 function drawSheetCentered(s, frame, flip) {
   const i = s.index[frame];

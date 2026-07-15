@@ -3,5 +3,6 @@ __pycache__/
 tools/headless/_bundle*.js
 _shot_*.png
 assets/gpt_style_refs/
+art/source/*_chroma.png
 bots_out.log
 tools/reel/out/

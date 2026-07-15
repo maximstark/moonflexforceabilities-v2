@@ -4,11 +4,11 @@
     "frame_h": 72,
     "frames": [
       "idle",
-      "blink",
+      "preen",
+      "idle2",
       "walk1",
       "walk2",
       "walk3",
-      "walk4",
       "jump",
       "swim1",
       "swim2"
