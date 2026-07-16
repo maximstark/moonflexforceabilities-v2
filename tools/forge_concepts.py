@@ -12,7 +12,7 @@ import io
 import subprocess
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,6 +34,15 @@ def cell(image: Image.Image, cols: int, rows: int, col: int, row: int) -> Image.
 def trim(image: Image.Image) -> Image.Image:
     bbox = image.getbbox()
     return image.crop(bbox) if bbox else image
+
+
+def clear_connected_matte(image: Image.Image, threshold: int = 34) -> Image.Image:
+    '''Remove only presentation matte connected to a cell edge, preserving dark interior detail.'''
+    result = image.convert('RGBA')
+    for seed in ((0, 0), (result.width - 1, 0), (0, result.height - 1),
+                 (result.width - 1, result.height - 1)):
+        ImageDraw.floodfill(result, seed, TRANSPARENT, thresh=threshold)
+    return result
 
 
 def fit(image: Image.Image, width: int, height: int, pad: int = 1, baseline: bool = True) -> Image.Image:
@@ -402,6 +411,23 @@ def main() -> None:
         manifest['par_lake'] = {'frame_w': 192, 'frame_h': 110, 'frames': ['s'], 'file': 'assets/par_lake.png'}
 
     production_terrain = ROOT / 'art' / 'production' / 'dream_lake_terrain.png'
+    production_world_tiles = ROOT / 'art' / 'production' / 'world_tiles_source.png'
+    if production_world_tiles.exists():
+        world_tiles = Image.open(production_world_tiles).convert('RGBA')
+        prop_cells = {5, 6, 7, 8, 9, 14, 15, 16, 19, 20, 24, 25, 26}
+        tile_frames = []
+        for index in range(len(tile2_labels)):
+            tile = cell(world_tiles, 6, 5, index % 6, index // 6)
+            tile = tile.crop((2, 2, tile.width - 2, tile.height - 2))
+            if index in (0, 1):
+                tile = tile.crop((0, round(tile.height * .38), tile.width, tile.height))
+            if index in prop_cells:
+                tile = clear_connected_matte(tile)
+                tile_frames.append(fit(tile, 16, 16, 0, baseline=index not in {5, 6, 7}))
+            else:
+                tile_frames.append(tile.resize((16, 16), Image.Resampling.LANCZOS))
+        raw_atlas('tiles2', tile2_labels, tile_frames, (16, 16), manifest)
+
     production_candy = ROOT / 'art' / 'production' / 'candy_clouds_background.png'
     production_fever = ROOT / 'art' / 'production' / 'fever_swarm_background.png'
     late_backgrounds = {
