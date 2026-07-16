@@ -435,6 +435,8 @@ def main() -> None:
         'fall': ROOT / 'art' / 'production' / 'long_fall_background.png',
         'cove': ROOT / 'art' / 'production' / 'secret_cove_background.png',
         'nice': ROOT / 'art' / 'production' / 'nice_place_background.png',
+        'longup': ROOT / 'art' / 'production' / 'long_way_up_background.png',
+        'dream': ROOT / 'art' / 'production' / 'biggest_dream_background.png',
     }
     for scene_name, scene_path in late_backgrounds.items():
         if not scene_path.exists():
@@ -455,6 +457,14 @@ def main() -> None:
         manifest['sky_fever'] = {'frame_w': 384, 'frame_h': 240, 'frames': ['g'], 'file': 'assets/sky_fever.png'}
         Image.new('RGBA', (192, 110), TRANSPARENT).save(ASSETS / 'par_fever.png')
         manifest['par_fever'] = {'frame_w': 192, 'frame_h': 110, 'frames': ['s'], 'file': 'assets/par_fever.png'}
+
+    production_finale = ROOT / 'art' / 'production' / 'moonflex_finale_background.png'
+    if production_finale.exists():
+        finale_image = Image.open(production_finale).convert('RGBA').resize((384, 240), Image.Resampling.LANCZOS)
+        finale_image.save(ASSETS / 'sky_finale.png')
+        manifest['sky_finale'] = {'frame_w': 384, 'frame_h': 240, 'frames': ['g'], 'file': 'assets/sky_finale.png'}
+        Image.new('RGBA', (192, 110), TRANSPARENT).save(ASSETS / 'par_finale.png')
+        manifest['par_finale'] = {'frame_w': 192, 'frame_h': 110, 'frames': ['s'], 'file': 'assets/par_finale.png'}
 
     if production_candy.exists():
         candy_image = Image.open(production_candy).convert('RGBA').resize((384, 240), Image.Resampling.LANCZOS)

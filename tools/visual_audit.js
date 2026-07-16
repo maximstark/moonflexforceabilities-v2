@@ -49,6 +49,15 @@ async function level(page, id) {
   await page.waitForTimeout(250);
   await snap(page, '05b-fever-swarm');
 
+  await level(page, 6);
+  await page.evaluate(() => {
+    const boss = Bosses.units[0], player = players[0];
+    player.x = boss.x - 120; player.y = boss.y; player.form = 'mecha';
+    Bosses.activated = true; World.updateCamera();
+  });
+  await page.waitForTimeout(250);
+  await snap(page, '05c-moonflex-finale');
+
   await level(page, 7);
   await page.evaluate(() => { players[0].x = 160; players[0].y = 560; World.updateCamera(); });
   await page.waitForTimeout(200);
@@ -102,5 +111,5 @@ async function level(page, id) {
 
   await browser.close();
   if (errors.length) throw new Error(errors.join("\n"));
-  console.log(`Captured 13 live frames in ${OUT}`);
+  console.log(`Captured 14 live frames in ${OUT}`);
 })().catch(error => { console.error(error); process.exit(1); });
