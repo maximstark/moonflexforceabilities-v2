@@ -353,6 +353,19 @@ def main() -> None:
     production_bad_dreams = ROOT / 'art' / 'production' / 'bad_dreams_source.png'
     production_nice_npcs = ROOT / 'art' / 'production' / 'nice_npcs_source.png'
     production_effects = ROOT / 'art' / 'production' / 'effects_source.png'
+    production_items = ROOT / 'art' / 'production' / 'items_source.png'
+    if production_items.exists():
+        items_source = Image.open(production_items).convert('RGBA')
+        production_item_labels = ['moon', 'beads', 'icon_fire', 'icon_pink', 'icon_tree',
+                                  'icon_kirby', 'pickup_mermaid', 'pickup_goosefeet',
+                                  'pickup_laser', 'pickup_spoon', 'baby_icon', 'charm_icon',
+                                  'phone', 'bubble', 'sticky', 'shell', 'egg', 'mace',
+                                  'heart', 'happiness']
+        registered_atlas('items', production_item_labels,
+                         [cell(items_source, 5, 4, index % 5, index // 5)
+                          for index in range(len(production_item_labels))],
+                         (16, 16), manifest, baseline=False)
+
     if production_effects.exists():
         effects_source = Image.open(production_effects).convert('RGBA')
         effects_labels = ['fireball1', 'fireball2', 'nut', 'mushroom', 'stink', 'ring1',

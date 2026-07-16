@@ -104,6 +104,11 @@ async function level(page, id) {
   await page.evaluate(() => { players[0].x = 360; players[0].y = 375; World.updateCamera(); });
   await page.waitForTimeout(200);
   await snap(page, "07-nice-place");
+  await page.evaluate(() => {
+    Game.state = 'chooser'; Game.chooserIdx = 0; Game.chooserFor = players[0];
+  });
+  await page.waitForTimeout(120);
+  await snap(page, '07a-power-chooser');
 
   await level(page, 11);
   await page.evaluate(() => {
@@ -127,5 +132,5 @@ async function level(page, id) {
 
   await browser.close();
   if (errors.length) throw new Error(errors.join("\n"));
-  console.log(`Captured 17 live frames in ${OUT}`);
+  console.log(`Captured 18 live frames in ${OUT}`);
 })().catch(error => { console.error(error); process.exit(1); });
