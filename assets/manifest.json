@@ -68,11 +68,15 @@
     "file": "assets/frog.png"
   },
   "cockroach": {
-    "frame_w": 30,
-    "frame_h": 16,
+    "frame_w": 36,
+    "frame_h": 20,
     "frames": [
       "scuttle1",
-      "scuttle2"
+      "scuttle2",
+      "scuttle3",
+      "scuttle4",
+      "hurt",
+      "defeated"
     ],
     "file": "assets/cockroach.png"
   },

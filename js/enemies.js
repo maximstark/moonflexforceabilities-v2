@@ -436,6 +436,8 @@ function drawEnemies(camX, camY) {
   }
 }
 function enemyFrame(e) {
+  if (e.type === 'cockroach' && sheets.cockroach.index.scuttle3 !== undefined)
+    return ['scuttle1', 'scuttle2', 'scuttle3', 'scuttle4'][(e.animTimer >> 2) & 3];
   if (e.type === 'frog' && sheets.frog.index.airborne !== undefined) {
     if (e.state === 'windup') {
       const progress = 1 - e.timer / Math.max(1, T.FROG_WINDUP);

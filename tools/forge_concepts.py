@@ -252,6 +252,12 @@ def main() -> None:
         registered_atlas('frog', ['idle', 'anticipation', 'crouch', 'launch', 'airborne', 'landing'],
                          [cell(frog_source, 6, 1, col, 0) for col in range(6)], (32, 28), manifest)
 
+    production_roach = ROOT / 'art' / 'production' / 'cockroach_source.png'
+    if production_roach.exists():
+        roach_source = Image.open(production_roach).convert('RGBA')
+        registered_atlas('cockroach', ['scuttle1', 'scuttle2', 'scuttle3', 'scuttle4', 'hurt', 'defeated'],
+                         [cell(roach_source, 6, 1, col, 0) for col in range(6)], (36, 20), manifest)
+
     production_grumpis = ROOT / 'art' / 'production' / 'grumpis_source.png'
     if production_grumpis.exists():
         grumpis_source = Image.open(production_grumpis).convert('RGBA')
