@@ -436,6 +436,8 @@ function drawEnemies(camX, camY) {
   }
 }
 function enemyFrame(e) {
+  if (e.type === 'wisp' && sheets.wisp.index.bob3 !== undefined)
+    return ['bob1', 'bob2', 'bob3', 'bob2'][(e.animTimer >> 2) & 3];
   if (e.type === 'fish' && sheets.fish.index.swim3 !== undefined)
     return ['swim1', 'swim2', 'swim3', 'swim2'][(e.animTimer >> 2) & 3];
   if (e.type === 'dino' && sheets.dino.index.walk3 !== undefined)

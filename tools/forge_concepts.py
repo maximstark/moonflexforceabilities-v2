@@ -276,6 +276,12 @@ def main() -> None:
         registered_atlas('fish', ['swim1', 'swim2', 'swim3', 'turn', 'dart', 'hurt'],
                          [cell(fish_source, 6, 1, col, 0) for col in range(6)], (20, 14), manifest)
 
+    production_wisp = ROOT / 'art' / 'production' / 'wisp_source.png'
+    if production_wisp.exists():
+        wisp_source = Image.open(production_wisp).convert('RGBA')
+        registered_atlas('wisp', ['bob1', 'bob2', 'bob3', 'alert', 'attack', 'hurt'],
+                         [cell(wisp_source, 6, 1, col, 0) for col in range(6)], (24, 24), manifest)
+
     production_grumpis = ROOT / 'art' / 'production' / 'grumpis_source.png'
     if production_grumpis.exists():
         grumpis_source = Image.open(production_grumpis).convert('RGBA')

@@ -196,11 +196,15 @@
     "file": "assets/fish.png"
   },
   "wisp": {
-    "frame_w": 18,
-    "frame_h": 18,
+    "frame_w": 24,
+    "frame_h": 24,
     "frames": [
       "bob1",
-      "bob2"
+      "bob2",
+      "bob3",
+      "alert",
+      "attack",
+      "hurt"
     ],
     "file": "assets/wisp.png"
   },
