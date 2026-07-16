@@ -117,6 +117,27 @@ function drawFrameSized(name, frame, x, y, w, h, flip = false, flipV = false) {
   ctx.restore();
 }
 
+// Scale framed artwork without distorting its corners or border weight.
+// Only the center and straight edge segments are stretched.
+function drawNineSlice(name, frame, x, y, w, h, inset = 12) {
+  const s = sheets[name], i = s.index[frame];
+  const sw = s.frame_w, sh = s.frame_h;
+  const ix = Math.min(inset, Math.floor(sw / 3), Math.floor(w / 2));
+  const iy = Math.min(inset, Math.floor(sh / 3), Math.floor(h / 2));
+  const sx = i * sw;
+  const srcX = [0, ix, sw - ix], srcW = [ix, sw - ix * 2, ix];
+  const srcY = [0, iy, sh - iy], srcH = [iy, sh - iy * 2, iy];
+  const dstX = [Math.round(x), Math.round(x + ix), Math.round(x + w - ix)];
+  const dstW = [ix, Math.max(0, w - ix * 2), ix];
+  const dstY = [Math.round(y), Math.round(y + iy), Math.round(y + h - iy)];
+  const dstH = [iy, Math.max(0, h - iy * 2), iy];
+  for (let row = 0; row < 3; row++)
+    for (let col = 0; col < 3; col++)
+      if (dstW[col] > 0 && dstH[row] > 0)
+        ctx.drawImage(s.img, sx + srcX[col], srcY[row], srcW[col], srcH[row],
+                      dstX[col], dstY[row], dstW[col], dstH[row]);
+}
+
 /* ---------------- save data ---------------- */
 const SAVE_KEY = "mffa_save_v1";
 let save = { unlocked: 1, babies: Array(T.WORLD_COUNT - 1).fill(false), highScores: [], best: 0 };

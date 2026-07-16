@@ -136,7 +136,7 @@ const UI = (() => {
     const off = Math.floor(Game.frame * 0.2) % 192;
     for (let x = -off; x < T.VIEW_W; x += 192) drawFrame("par_lake", "s", x, T.VIEW_H - 110);
     ctx.textAlign = "center";
-    drawFrameSized("ui_panels", "title", 8, 17, T.VIEW_W - 16, 91);
+    drawNineSlice('ui_panels', 'title', 8, 17, T.VIEW_W - 16, 91);
     // the logo bobs, letter by letter, with a plum shadow
     ctx.font = "bold 17px monospace";
     const cw = ctx.measureText("M").width;
@@ -198,7 +198,7 @@ const UI = (() => {
   const PAUSE_OPTS = ["KEEP DREAMING", "RESTART THIS DREAM", "WORLD MAP", "GENTLE DREAMS", "MUTE MUSIC", "ERASE ALL DREAMS"];
   function drawPause() {
     ctx.fillStyle = "rgba(12,10,20,0.6)"; ctx.fillRect(0, 0, T.VIEW_W, T.VIEW_H);
-    drawFrameSized("ui_panels", Game.confirmErase ? "confirm" : "pause",
+    drawNineSlice('ui_panels', Game.confirmErase ? 'confirm' : 'pause',
                    T.VIEW_W / 2 - 116, 40, 232, 168);
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffe48a"; ctx.font = "bold 12px monospace";
@@ -296,7 +296,7 @@ const UI = (() => {
   function drawChooser() {
     ctx.fillStyle = "rgba(12,10,20,0.80)"; ctx.fillRect(0, 0, T.VIEW_W, T.VIEW_H);
     ctx.globalAlpha = 0.92;
-    drawFrameSized("ui_panels", "chooser", 8, 30, T.VIEW_W - 16, T.VIEW_H - 40);
+    drawNineSlice('ui_panels', 'chooser', 8, 30, T.VIEW_W - 16, T.VIEW_H - 40);
     ctx.globalAlpha = 1;
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffe48a"; ctx.font = "bold 11px monospace";
@@ -396,7 +396,7 @@ const UI = (() => {
     drawStretched(level ? level.sky : "sky_hub", "g", 0, 0, T.VIEW_W, T.VIEW_H);
     ctx.fillStyle = "rgba(12,10,20,0.7)"; ctx.fillRect(0, 0, T.VIEW_W, T.VIEW_H);
     ctx.globalAlpha = 0.82;
-    drawFrameSized("ui_panels", "store", 12, 14, T.VIEW_W - 24, T.VIEW_H - 24);
+    drawNineSlice('ui_panels', 'store', 12, 14, T.VIEW_W - 24, T.VIEW_H - 24);
     ctx.globalAlpha = 1;
     const s = store;
     ctx.textAlign = "center";
@@ -442,7 +442,7 @@ const UI = (() => {
     }
     const lines = Game.card || [];
     const ph = Math.max(90, lines.length * 16 + 52);
-    drawFrameSized("ui_panels", "story", 18, T.VIEW_H / 2 - ph / 2 - 8, T.VIEW_W - 36, ph + 16);
+    drawNineSlice('ui_panels', 'story', 18, T.VIEW_H / 2 - ph / 2 - 8, T.VIEW_W - 36, ph + 16);
     ctx.textAlign = "center"; ctx.font = "9px monospace";
     let budget = Math.floor(Game.stateTimer * 1.4);
     const y0 = T.VIEW_H / 2 - ph / 2 + 30;
@@ -509,7 +509,7 @@ const UI = (() => {
   function drawCredits() {
     ctx.fillStyle = "#16131f"; ctx.fillRect(0, 0, T.VIEW_W, T.VIEW_H);
     ctx.globalAlpha = 0.72;
-    drawFrameSized("ui_panels", "credits", T.VIEW_W / 2 - 108, 8, 216, T.VIEW_H - 16);
+    drawNineSlice('ui_panels', 'credits', T.VIEW_W / 2 - 108, 8, 216, T.VIEW_H - 16);
     ctx.globalAlpha = 1;
     for (let i = 0; i < 16; i++) {                    // the night sky applauds
       const tw = Math.abs(Math.sin(Game.frame / 24 + i * 2.1));
@@ -531,7 +531,7 @@ const UI = (() => {
   /* ---------------- clear tally ---------------- */
   function drawClear() {
     ctx.fillStyle = "rgba(12,10,20,0.55)"; ctx.fillRect(0, 0, T.VIEW_W, T.VIEW_H);
-    drawFrameSized("ui_panels", "clear", T.VIEW_W / 2 - 102, 38, 204, 126);
+    drawNineSlice('ui_panels', 'clear', T.VIEW_W / 2 - 102, 38, 204, 126);
     ctx.textAlign = "center";
     const hop = Math.round(Math.abs(Math.sin(Game.frame / 12)) * -3);
     drawFrame("hud", "trophy", T.VIEW_W / 2 - 8, 60 + hop);
@@ -551,7 +551,7 @@ const UI = (() => {
   function drawScores() {
     ctx.fillStyle = "#16131f"; ctx.fillRect(0, 0, T.VIEW_W, T.VIEW_H);
     ctx.globalAlpha = 0.68;
-    drawFrameSized("ui_panels", "credits", T.VIEW_W / 2 - 110, 8, 220, T.VIEW_H - 16);
+    drawNineSlice('ui_panels', 'credits', T.VIEW_W / 2 - 110, 8, 220, T.VIEW_H - 16);
     ctx.globalAlpha = 1;
     ctx.textAlign = "center";
     drawFrame("items", "beads", T.VIEW_W / 2 - 8, 24);
