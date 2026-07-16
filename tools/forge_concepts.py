@@ -323,6 +323,13 @@ def main() -> None:
                          [cell(mecha_source, 6, 1, col, 0) for col in range(6)], (76, 70), manifest)
         manifest['mecha'].update({'anchor': [38, 69], 'attachments': {'head': [52, 15], 'feet': [38, 69]}})
 
+    production_baby = ROOT / 'art' / 'production' / 'babyswan_source.png'
+    if production_baby.exists():
+        baby_source = Image.open(production_baby).convert('RGBA')
+        registered_atlas('babyswan', ['bob1', 'bob2', 'bob3', 'flap', 'carried', 'cheer'],
+                         [cell(baby_source, 6, 1, col, 0) for col in range(6)], (22, 20), manifest,
+                         baseline=False)
+
     production_grumpis = ROOT / 'art' / 'production' / 'grumpis_source.png'
     if production_grumpis.exists():
         grumpis_source = Image.open(production_grumpis).convert('RGBA')

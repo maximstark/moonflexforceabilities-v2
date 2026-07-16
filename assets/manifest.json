@@ -226,11 +226,15 @@
     }
   },
   "babyswan": {
-    "frame_w": 18,
-    "frame_h": 16,
+    "frame_w": 22,
+    "frame_h": 20,
     "frames": [
       "bob1",
-      "bob2"
+      "bob2",
+      "bob3",
+      "flap",
+      "carried",
+      "cheer"
     ],
     "file": "assets/babyswan.png"
   },
