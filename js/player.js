@@ -548,15 +548,21 @@ function drawPlayer(p, camX, camY) {
   // worn costume overlays (the visible stack)
   const cx = p.x + p.w / 2 - camX, footY = p.y + p.h - camY;
   const head = s.attachments.head || [anchor[0], Math.max(4, anchor[1] - s.draw_h + 4)];
+  const feet = s.attachments.feet || anchor;
+  const hand = s.attachments.hand || [anchor[0] + 8, anchor[1] - 12];
   const headX = dx + (flip ? s.draw_w - head[0] : head[0]);
   const headY = dy + head[1];
-  if (has(p, "goosefeet")) drawFrame("gear", "goosefeet", cx - 14, footY - 24, flip);
+  const feetX = dx + (flip ? s.draw_w - feet[0] : feet[0]);
+  const feetY = dy + feet[1];
+  const handX = dx + (flip ? s.draw_w - hand[0] : hand[0]);
+  const handY = dy + hand[1];
+  if (has(p, 'goosefeet')) drawFrame('gear', 'goosefeet', feetX - 14, feetY - 24, flip);
   if (has(p, "laser") && p.form !== "mecha") drawFrame("gear", "visor", headX - 14, headY - 8, flip);
   if (has(p, "kirby")) drawFrame("gear", "kirbycap", headX - 14, headY - 20, flip);
   if (has(p, "spoon")) {
     const swing = p.spoonTimer > T.SPOON_ARC_FRAMES / 2;
-    drawFrame("gear", swing ? "spoon_down" : "spoon_up",
-              cx + (flip ? -26 : -2), footY - 30, flip);
+    drawFrame('gear', swing ? 'spoon_down' : 'spoon_up',
+              handX + (flip ? -24 : -4), handY - 14, flip);
   }
   // bubblegum shield: a vibrant pink bubble wrapping the body (one ring per stack)
   if (p.bubble > 0) {

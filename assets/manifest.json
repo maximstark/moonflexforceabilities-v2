@@ -28,6 +28,10 @@
       "feet": [
         20,
         34
+      ],
+      "hand": [
+        31,
+        21
       ]
     }
   },
@@ -55,6 +59,10 @@
       "feet": [
         24,
         30
+      ],
+      "hand": [
+        39,
+        20
       ]
     }
   },
@@ -168,6 +176,10 @@
       "feet": [
         18,
         33
+      ],
+      "hand": [
+        28,
+        20
       ]
     }
   },
@@ -195,6 +207,10 @@
       "feet": [
         30,
         53
+      ],
+      "hand": [
+        46,
+        31
       ]
     }
   },
@@ -329,9 +345,9 @@
     "frames": [
       "goosefeet",
       "visor",
+      "kirbycap",
       "spoon_up",
-      "spoon_down",
-      "kirbycap"
+      "spoon_down"
     ],
     "file": "assets/gear.png"
   },

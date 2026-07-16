@@ -300,21 +300,21 @@ def main() -> None:
         registered_atlas('mermaid', ['idle', 'swim1', 'swim2', 'swim3', 'upturn', 'hurt'],
                          [cell(mermaid_source, 6, 1, col, 0) for col in range(6)], (48, 44), manifest,
                          baseline=False)
-        manifest['mermaid'].update({'anchor': [24, 30], 'attachments': {'head': [37, 9], 'feet': [24, 30]}})
+        manifest['mermaid'].update({'anchor': [24, 30], 'attachments': {'head': [37, 9], 'feet': [24, 30], 'hand': [39, 20]}})
 
     production_charm = ROOT / 'art' / 'production' / 'charmgirl_source.png'
     if production_charm.exists():
         charm_source = Image.open(production_charm).convert('RGBA')
         registered_atlas('charmgirl', ['idle', 'walk1', 'walk2', 'walk3', 'jump', 'hurt'],
                          [cell(charm_source, 6, 1, col, 0) for col in range(6)], (36, 34), manifest)
-        manifest['charmgirl'].update({'anchor': [18, 33], 'attachments': {'head': [22, 8], 'feet': [18, 33]}})
+        manifest['charmgirl'].update({'anchor': [18, 33], 'attachments': {'head': [22, 8], 'feet': [18, 33], 'hand': [28, 20]}})
 
     production_trex = ROOT / 'art' / 'production' / 'trex_source.png'
     if production_trex.exists():
         trex_source = Image.open(production_trex).convert('RGBA')
         registered_atlas('trex', ['idle', 'walk1', 'walk2', 'walk3', 'roar', 'hurt'],
                          [cell(trex_source, 6, 1, col, 0) for col in range(6)], (60, 54), manifest)
-        manifest['trex'].update({'anchor': [30, 53], 'attachments': {'head': [42, 13], 'feet': [30, 53]}})
+        manifest['trex'].update({'anchor': [30, 53], 'attachments': {'head': [42, 13], 'feet': [30, 53], 'hand': [46, 31]}})
 
     production_mecha = ROOT / 'art' / 'production' / 'mecha_source.png'
     if production_mecha.exists():
@@ -337,6 +337,13 @@ def main() -> None:
                          [cell(turtle_source, 6, 1, col, 0) for col in range(6)], (112, 52), manifest)
 
     production_grumpis = ROOT / 'art' / 'production' / 'grumpis_source.png'
+    production_gear = ROOT / 'art' / 'production' / 'gear_source.png'
+    if production_gear.exists():
+        gear_source = Image.open(production_gear).convert('RGBA')
+        registered_atlas('gear', ['goosefeet', 'visor', 'kirbycap', 'spoon_up', 'spoon_down'],
+                         [cell(gear_source, 5, 1, col, 0) for col in range(5)],
+                         (28, 28), manifest, baseline=False)
+
     if production_grumpis.exists():
         grumpis_source = Image.open(production_grumpis).convert('RGBA')
         registered_atlas('boss_grumpis', ['idle', 'anticipation', 'attack', 'recover', 'hurt', 'defeated'],
@@ -365,6 +372,7 @@ def main() -> None:
 
     # Preserve the already-approved Swan extraction metadata.
     manifest["swan"].update({"draw_w": 40, "draw_h": 36, "anchor": [20, 34], "attachments": {"head": [32.5, 6], "feet": [20, 34]}})
+    manifest['swan']['attachments']['hand'] = [31, 21]
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(f"Forged {len(manifest)} runtime sheets from approved concepts")
 
