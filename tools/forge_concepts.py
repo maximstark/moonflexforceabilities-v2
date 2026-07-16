@@ -288,6 +288,12 @@ def main() -> None:
         registered_atlas('fly', ['buzz1', 'buzz2', 'buzz3', 'buzz4', 'dart', 'hurt'],
                          [cell(fly_source, 6, 1, col, 0) for col in range(6)], (28, 22), manifest)
 
+    production_fly_dino = ROOT / 'art' / 'production' / 'fly_dino_source.png'
+    if production_fly_dino.exists():
+        fly_dino_source = Image.open(production_fly_dino).convert('RGBA')
+        registered_atlas('fly_dino', ['buzz1', 'buzz2', 'buzz3', 'buzz4', 'dart', 'hurt'],
+                         [cell(fly_dino_source, 6, 1, col, 0) for col in range(6)], (36, 30), manifest)
+
     production_grumpis = ROOT / 'art' / 'production' / 'grumpis_source.png'
     if production_grumpis.exists():
         grumpis_source = Image.open(production_grumpis).convert('RGBA')

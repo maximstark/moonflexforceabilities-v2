@@ -490,11 +490,15 @@
     "file": "assets/par_finale.png"
   },
   "fly_dino": {
-    "frame_w": 30,
-    "frame_h": 24,
+    "frame_w": 36,
+    "frame_h": 30,
     "frames": [
       "buzz1",
-      "buzz2"
+      "buzz2",
+      "buzz3",
+      "buzz4",
+      "dart",
+      "hurt"
     ],
     "file": "assets/fly_dino.png"
   },
