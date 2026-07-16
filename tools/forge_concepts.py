@@ -270,6 +270,12 @@ def main() -> None:
         registered_atlas('alligator', ['catface', 'reveal', 'revealed', 'swim', 'chomp', 'hurt'],
                          [cell(gator_source, 6, 1, col, 0) for col in range(6)], (56, 32), manifest)
 
+    production_fish = ROOT / 'art' / 'production' / 'fish_source.png'
+    if production_fish.exists():
+        fish_source = Image.open(production_fish).convert('RGBA')
+        registered_atlas('fish', ['swim1', 'swim2', 'swim3', 'turn', 'dart', 'hurt'],
+                         [cell(fish_source, 6, 1, col, 0) for col in range(6)], (20, 14), manifest)
+
     production_grumpis = ROOT / 'art' / 'production' / 'grumpis_source.png'
     if production_grumpis.exists():
         grumpis_source = Image.open(production_grumpis).convert('RGBA')

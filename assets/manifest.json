@@ -183,11 +183,15 @@
     "file": "assets/alligator.png"
   },
   "fish": {
-    "frame_w": 14,
-    "frame_h": 10,
+    "frame_w": 20,
+    "frame_h": 14,
     "frames": [
       "swim1",
-      "swim2"
+      "swim2",
+      "swim3",
+      "turn",
+      "dart",
+      "hurt"
     ],
     "file": "assets/fish.png"
   },
