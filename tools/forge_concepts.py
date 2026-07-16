@@ -364,6 +364,7 @@ def main() -> None:
         'ascent': ROOT / 'art' / 'production' / 'broken_ascent_background.png',
         'fall': ROOT / 'art' / 'production' / 'long_fall_background.png',
         'cove': ROOT / 'art' / 'production' / 'secret_cove_background.png',
+        'nice': ROOT / 'art' / 'production' / 'nice_place_background.png',
     }
     for scene_name, scene_path in late_backgrounds.items():
         if not scene_path.exists():
