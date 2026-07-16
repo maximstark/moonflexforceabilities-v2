@@ -172,14 +172,31 @@
     }
   },
   "trex": {
-    "frame_w": 52,
-    "frame_h": 48,
+    "frame_w": 60,
+    "frame_h": 54,
     "frames": [
+      "idle",
       "walk1",
       "walk2",
-      "roar"
+      "walk3",
+      "roar",
+      "hurt"
     ],
-    "file": "assets/trex.png"
+    "file": "assets/trex.png",
+    "anchor": [
+      30,
+      53
+    ],
+    "attachments": {
+      "head": [
+        42,
+        13
+      ],
+      "feet": [
+        30,
+        53
+      ]
+    }
   },
   "mecha": {
     "frame_w": 64,

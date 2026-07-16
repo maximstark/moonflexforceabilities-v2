@@ -497,6 +497,10 @@ function drawPlayer(p, camX, camY) {
     else if (p.animTimer % 360 < 28) frame = "preen";
     else frame = (p.animTimer >> 6) % 2 ? "idle2" : "idle";
   }
+  if (p.form === 'trex' && sheets.trex.index.walk3 !== undefined) {
+    frame = p.moonTimer > T.MOON_TREX_FRAMES - 30 ? 'roar'
+      : ['walk1', 'walk2', 'walk3', 'walk2'][(p.animTimer >> 3) & 3];
+  }
   if (p.form === 'charmgirl' && sheets.charmgirl.index.walk3 !== undefined) {
     frame = !p.grounded ? 'jump' : moving
       ? ['walk1', 'walk2', 'walk3', 'walk2'][(p.animTimer >> 2) & 3] : 'idle';

@@ -309,6 +309,13 @@ def main() -> None:
                          [cell(charm_source, 6, 1, col, 0) for col in range(6)], (36, 34), manifest)
         manifest['charmgirl'].update({'anchor': [18, 33], 'attachments': {'head': [22, 8], 'feet': [18, 33]}})
 
+    production_trex = ROOT / 'art' / 'production' / 'trex_source.png'
+    if production_trex.exists():
+        trex_source = Image.open(production_trex).convert('RGBA')
+        registered_atlas('trex', ['idle', 'walk1', 'walk2', 'walk3', 'roar', 'hurt'],
+                         [cell(trex_source, 6, 1, col, 0) for col in range(6)], (60, 54), manifest)
+        manifest['trex'].update({'anchor': [30, 53], 'attachments': {'head': [42, 13], 'feet': [30, 53]}})
+
     production_grumpis = ROOT / 'art' / 'production' / 'grumpis_source.png'
     if production_grumpis.exists():
         grumpis_source = Image.open(production_grumpis).convert('RGBA')
