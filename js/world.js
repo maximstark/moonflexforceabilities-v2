@@ -477,8 +477,10 @@ const World = (() => {
       const e = elevator;
       // shut doors at every floor; the doorway is open only where the car waits
       for (const s of e.stops)
-        if (Math.abs(s - e.y) > 1) drawFrame("elevator", "closed", e.x - cx, s - 26 - cy);
-      drawFrame("elevator", e.moving ? "closed" : "open", e.x - cx, e.y - 26 - cy);
+        if (Math.abs(s - e.y) > 1) drawFrame("elevator", "closed", e.x - cx,
+                                             s - sheets.elevator.anchor[1] - cy);
+      drawFrame("elevator", e.moving ? "closed" : "open", e.x - cx,
+                e.y - sheets.elevator.anchor[1] - cy);
       // beacon: the next floor is UP the shaft (you respawn at the bottom)
       const p = players[0];
       const nearLift = p && !p.dead && p.x + p.w > e.x - 6 && p.x < e.x + e.w + 6;

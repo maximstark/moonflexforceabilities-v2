@@ -194,7 +194,7 @@ const Overworld = (() => {
     ctx.fillStyle = "rgba(12,10,20,0.62)"; ctx.fillRect(0, 0, T.VIEW_W, T.VIEW_H);
     drawNineSlice("overworld_props", "trophy_interior", 20, 22,
                   T.VIEW_W - 40, T.VIEW_H - 34, 18);
-    ctx.fillStyle = "rgba(24,14,34,0.42)"; ctx.fillRect(38, 28, T.VIEW_W - 76, 116);
+    ctx.fillStyle = "rgba(24,14,34,0.84)"; ctx.fillRect(38, 28, T.VIEW_W - 76, 116);
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffe48a"; ctx.font = "bold 13px monospace";
     ctx.fillText("THE TROPHY ROOM", T.VIEW_W / 2, 34);

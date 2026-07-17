@@ -470,7 +470,11 @@
       "closed",
       "open"
     ],
-    "file": "assets/elevator.png"
+    "file": "assets/elevator.png",
+    "anchor": [
+      12,
+      31
+    ]
   },
   "sky_lake": {
     "frame_w": 384,

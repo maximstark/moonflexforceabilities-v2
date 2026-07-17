@@ -58,6 +58,105 @@ def fit(image: Image.Image, width: int, height: int, pad: int = 1, baseline: boo
     return result
 
 
+def align_tile_surface(image: Image.Image, *, fill_down: bool = False) -> Image.Image:
+    '''Put the first painted pixel on the collision top instead of below it.'''
+    result = image.convert('RGBA')
+    alpha = result.getchannel('A')
+    bbox = alpha.getbbox()
+    if not bbox or bbox[1] == 0:
+        return result
+    painted = result.crop((0, bbox[1], result.width, result.height))
+    aligned = Image.new('RGBA', result.size, TRANSPARENT)
+    aligned.alpha_composite(painted, (0, 0))
+    if fill_down and painted.height < result.height:
+        edge = painted.crop((0, painted.height - 1, painted.width, painted.height))
+        for y in range(painted.height, result.height):
+            aligned.alpha_composite(edge, (0, y))
+    return aligned
+
+
+def clean_world_tiles() -> list[Image.Image]:
+    '''Seamless 16px gameplay tiles; presentation art must never be chopped into terrain.'''
+    def tile(fill=(0, 0, 0, 0)):
+        return Image.new('RGBA', (16, 16), fill)
+    def speck(im, colors, seed):
+        d = ImageDraw.Draw(im)
+        for i in range(9):
+            x, y = (i * 7 + seed * 3) % 16, (i * 11 + seed * 5) % 16
+            d.point((x, y), fill=colors[i % len(colors)])
+        return im
+    out = []
+    for phase in range(2):
+        im = tile((38, 105, 150, 255)); d = ImageDraw.Draw(im)
+        d.rectangle((0, 0, 15, 2), fill=(137, 218, 232, 255))
+        for x in range(-4 + phase * 3, 16, 8): d.line((x, 4, x + 5, 4), fill=(80, 164, 196, 255))
+        out.append(im)
+    out.append(speck(tile((24, 72, 120, 255)), [(35, 92, 142, 255), (20, 60, 105, 255)], 1))
+    rock = speck(tile((74, 67, 98, 255)), [(102, 91, 126, 255), (54, 49, 76, 255)], 2)
+    d = ImageDraw.Draw(rock); d.rectangle((0, 0, 15, 2), fill=(148, 132, 158, 255)); out.append(rock)
+    out.append(speck(tile((65, 58, 86, 255)), [(84, 75, 104, 255), (48, 43, 68, 255)], 3))
+    for lean in (-2, 2):
+        im = tile(); d = ImageDraw.Draw(im); d.line((8, 15, 8 + lean, 3), fill=(48, 132, 91, 255), width=2); d.line((8, 11, 3, 6), fill=(71, 166, 105, 255), width=2); out.append(im)
+    im = tile(); d = ImageDraw.Draw(im); d.line((8, 15, 8, 5), fill=(196, 106, 117, 255), width=2); d.ellipse((4, 2, 9, 8), fill=(241, 151, 157, 255)); d.ellipse((8, 5, 13, 11), fill=(224, 119, 142, 255)); out.append(im)
+    for opened in (False, True):
+        im = tile(); d = ImageDraw.Draw(im); d.rectangle((2, 7, 13, 14), fill=(110, 61, 49, 255), outline=(48, 34, 45, 255)); d.rectangle((3, 8, 12, 10), fill=(219, 161, 75, 255));
+        if opened: d.rectangle((2, 2, 13, 7), fill=(91, 49, 48, 255), outline=(48, 34, 45, 255))
+        else: d.rectangle((2, 4, 13, 8), fill=(151, 88, 57, 255), outline=(48, 34, 45, 255))
+        out.append(im)
+    cloud = tile((226, 224, 242, 255)); d = ImageDraw.Draw(cloud); d.rectangle((0, 0, 15, 2), fill=(255, 248, 232, 255)); d.line((0, 4, 15, 4), fill=(186, 180, 216, 255)); out.append(cloud)
+    out.append(speck(tile((199, 193, 224, 255)), [(215, 209, 235, 255), (174, 165, 207, 255)], 4))
+    candy = tile((240, 165, 197, 255)); d = ImageDraw.Draw(candy); d.rectangle((0, 0, 15, 2), fill=(255, 230, 239, 255)); d.line((0, 5, 15, 5), fill=(212, 119, 163, 255)); out.append(candy)
+    out.append(speck(tile((211, 129, 177, 255)), [(230, 151, 193, 255), (187, 103, 155, 255)], 5))
+    im = tile(); d = ImageDraw.Draw(im); d.polygon([(3,15),(5,6),(8,2),(11,6),(13,15)], fill=(113, 207, 191, 255), outline=(54, 88, 105, 255)); d.line((6,8,10,8), fill=(238,247,220,255)); out.append(im)
+    for compressed in (False, True):
+        im=tile(); d=ImageDraw.Draw(im); top=8 if compressed else 4; d.rectangle((3,top,12,14),fill=(113,78,145,255),outline=(43,34,62,255)); d.line((4,top+2,11,top+2),fill=(242,205,92,255),width=2); out.append(im)
+    night=speck(tile((65,55,91,255)),[(83,70,108,255),(46,41,68,255)],6); d=ImageDraw.Draw(night); d.rectangle((0,0,15,2),fill=(135,186,105,255)); d.rectangle((0,3,15,4),fill=(83,126,78,255)); out.append(night)
+    out.append(speck(tile((50,43,72,255)),[(68,57,91,255),(39,34,58,255)],7))
+    for phase in range(2):
+        im=tile(); d=ImageDraw.Draw(im); d.polygon([(8,1+phase),(4,8),(7,14),(11,10),(12,5)],fill=(255,119,68,255)); d.polygon([(8,5),(6,10),(9,12),(10,7)],fill=(255,226,106,255)); out.append(im)
+    im=tile((94,58,61,255)); d=ImageDraw.Draw(im); d.line((3,3,13,3),fill=(128,78,70,255)); d.line((2,11,12,11),fill=(69,47,55,255)); out.append(im)
+    out.append(speck(tile((62,117,69,255)),[(82,145,78,255),(48,94,60,255)],8))
+    im=tile((160,101,151,255)); d=ImageDraw.Draw(im); d.rectangle((0,0,15,2),fill=(234,165,211,255)); d.ellipse((3,3,6,6),fill=(207,137,190,255)); d.ellipse((11,9,14,12),fill=(125,75,126,255)); out.append(im)
+    im=tile(); d=ImageDraw.Draw(im); d.rectangle((1,7,14,9),fill=(212,190,148,255)); d.rectangle((3,3,5,15),fill=(125,88,73,255)); d.rectangle((11,3,13,15),fill=(125,88,73,255)); out.append(im)
+    im=tile(); d=ImageDraw.Draw(im); d.line((8,15,8,8),fill=(54,116,69,255),width=2); d.ellipse((4,3,11,10),fill=(242,157,196,255)); d.point((7,6),fill=(255,239,151,255)); out.append(im)
+    im=tile(); d=ImageDraw.Draw(im); d.rectangle((7,6,8,15),fill=(105,70,58,255)); d.rectangle((2,2,13,9),fill=(177,125,75,255),outline=(71,49,55,255)); d.line((5,4,10,7),fill=(248,226,174,255)); out.append(im)
+    return out
+
+
+def clean_hub_tiles() -> list[Image.Image]:
+    def base(color): return Image.new('RGBA', (16, 16), color)
+    wall=base((74,54,91,255)); d=ImageDraw.Draw(wall); d.line((0,7,15,7),fill=(88,67,106,255)); d.line((5,0,5,15),fill=(62,47,78,255))
+    paper=base((202,183,191,255)); d=ImageDraw.Draw(paper); d.point((4,4),fill=(225,207,207,255)); d.point((12,12),fill=(177,151,172,255))
+    floor=base((105,67,78,255)); d=ImageDraw.Draw(floor); d.line((0,3,15,3),fill=(132,84,91,255)); d.line((0,11,15,11),fill=(73,51,66,255)); d.line((7,4,7,10),fill=(79,54,68,255))
+    window=base((64,50,83,255)); d=ImageDraw.Draw(window); d.rectangle((2,2,13,13),fill=(73,123,155,255),outline=(215,188,127,255)); d.line((8,2,8,13),fill=(215,188,127,255)); d.line((2,8,13,8),fill=(215,188,127,255))
+    door=base((91,58,82,255)); d=ImageDraw.Draw(door); d.rectangle((2,0,13,15),fill=(124,76,104,255),outline=(49,38,59,255)); d.ellipse((10,8,11,9),fill=(240,200,99,255))
+    bed_l=base((181,146,174,255)); d=ImageDraw.Draw(bed_l); d.rectangle((0,6,15,14),fill=(211,177,199,255)); d.rectangle((1,3,8,8),fill=(240,225,215,255))
+    bed_r=base((181,146,174,255)); d=ImageDraw.Draw(bed_r); d.rectangle((0,6,15,14),fill=(211,177,199,255)); d.line((0,10,15,10),fill=(154,113,151,255))
+    shelf=base((80,57,82,255)); d=ImageDraw.Draw(shelf); d.rectangle((1,3,14,5),fill=(142,92,78,255)); d.rectangle((1,11,14,13),fill=(142,92,78,255)); d.rectangle((3,5,5,10),fill=(216,154,111,255)); d.rectangle((8,6,10,10),fill=(128,158,178,255))
+    lamp=Image.new('RGBA',(16,16)); d=ImageDraw.Draw(lamp); d.rectangle((7,8,8,15),fill=(103,69,62,255)); d.polygon([(3,8),(6,2),(10,2),(13,8)],fill=(247,208,123,255),outline=(97,65,67,255))
+    plant=Image.new('RGBA',(16,16)); d=ImageDraw.Draw(plant); d.rectangle((5,11,11,15),fill=(151,83,78,255)); d.ellipse((2,3,8,11),fill=(91,151,101,255)); d.ellipse((8,1,14,10),fill=(72,132,91,255))
+    shaft=base((35,31,49,255)); d=ImageDraw.Draw(shaft); d.line((3,0,3,15),fill=(127,103,133,255)); d.line((12,0,12,15),fill=(127,103,133,255)); d.line((4,4,11,4),fill=(82,68,91,255)); d.line((4,12,11,12),fill=(82,68,91,255))
+    roof_l=base((76,48,81,255)); d=ImageDraw.Draw(roof_l); d.polygon([(0,15),(15,0),(15,15)],fill=(125,74,118,255)); d.line((1,14,15,0),fill=(219,170,151,255))
+    roof_r=roof_l.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+    return [wall,paper,floor,window,door,bed_l,bed_r,shelf,lamp,plant,shaft,roof_l,roof_r]
+
+
+def clean_lake_tiles() -> list[Image.Image]:
+    grass = Image.new('RGBA', (16, 16), (102, 71, 70, 255)); d = ImageDraw.Draw(grass)
+    d.rectangle((0, 0, 15, 2), fill=(174, 209, 105, 255)); d.rectangle((0, 3, 15, 4), fill=(94, 145, 78, 255))
+    d.point((3, 9), fill=(128, 84, 75, 255)); d.point((12, 13), fill=(76, 55, 65, 255))
+    dirt = Image.new('RGBA', (16, 16), (102, 71, 70, 255)); d = ImageDraw.Draw(dirt)
+    for x, y in ((2,3),(11,5),(6,12),(14,14)): d.point((x,y), fill=(137, 88, 76, 255))
+    edge_l = grass.copy(); edge_r = grass.copy()
+    d = ImageDraw.Draw(edge_l); d.rectangle((0,0,1,15), fill=(211, 177, 108, 255))
+    d = ImageDraw.Draw(edge_r); d.rectangle((14,0,15,15), fill=(211, 177, 108, 255))
+    platform = Image.new('RGBA', (16,16)); d=ImageDraw.Draw(platform); d.rectangle((0,0,15,3),fill=(176,208,105,255)); d.rectangle((1,4,14,6),fill=(93,127,72,255)); d.rectangle((3,7,12,8),fill=(77,72,66,180))
+    pad = Image.new('RGBA',(16,16)); d=ImageDraw.Draw(pad); d.ellipse((1,0,14,7),fill=(84,159,82,255),outline=(41,96,67,255)); d.polygon([(8,3),(14,0),(14,4)],fill=(0,0,0,0))
+    cattail=Image.new('RGBA',(16,16)); d=ImageDraw.Draw(cattail); d.line((8,15,8,4),fill=(74,132,76,255),width=2); d.rounded_rectangle((6,0,9,6),1,fill=(126,76,58,255)); d.line((8,10,3,6),fill=(100,161,83,255))
+    lantern=Image.new('RGBA',(16,16)); d=ImageDraw.Draw(lantern); d.rectangle((7,6,8,15),fill=(87,61,57,255)); d.rectangle((4,1,11,8),fill=(250,208,112,255),outline=(78,57,64,255)); d.point((7,4),fill=(255,247,190,255))
+    return [grass,dirt,edge_l,edge_r,platform,pad,cattail,lantern]
+
+
 def grid(path: str, cols: int, rows: int, coords: list[tuple[int, int]]) -> list[Image.Image]:
     image = board(path)
     return [cell(image, cols, rows, col, row) for col, row in coords]
@@ -490,6 +589,7 @@ def main() -> None:
         registered_atlas('elevator', ['closed', 'open'],
                          [cell(elevator_source, 2, 1, col, 0) for col in range(2)],
                          (24, 32), manifest)
+        manifest['elevator']['anchor'] = [12, 31]
 
     if production_home_tiles.exists():
         home_tiles = Image.open(production_home_tiles).convert('RGBA')
@@ -517,6 +617,8 @@ def main() -> None:
                 tile_frames.append(fit(tile, 16, 16, 0, baseline=index not in {5, 6, 7}))
             else:
                 tile_frames.append(tile.resize((16, 16), Image.Resampling.LANCZOS))
+        for index in (3, 10, 12, 17):
+            tile_frames[index] = align_tile_surface(tile_frames[index], fill_down=True)
         raw_atlas('tiles2', tile2_labels, tile_frames, (16, 16), manifest)
 
     production_candy = ROOT / 'art' / 'production' / 'candy_clouds_background.png'
@@ -598,8 +700,20 @@ def main() -> None:
             cell(terrain, 4, 4, 0, 3), terrain.crop((round(terrain.width * .60), round(terrain.height * .75),
                                                     round(terrain.width * .82), terrain.height)),
         ]
+        terrain_frames = [fit(frame, 16, 16, 0) for frame in terrain_frames]
+        terrain_frames[0] = align_tile_surface(terrain_frames[0], fill_down=True)
+        terrain_frames[4] = align_tile_surface(terrain_frames[4])
+        terrain_frames[5] = align_tile_surface(terrain_frames[5])
         raw_atlas('tiles', ['grass_top', 'dirt', 'edge_left', 'edge_right', 'platform', 'lilypad', 'cattail', 'lantern'],
-                  [fit(frame, 16, 16, 0) for frame in terrain_frames], (16, 16), manifest)
+                  terrain_frames, (16, 16), manifest)
+
+    # Repeating terrain is authored to the engine's exact collision contract.
+    # Never use presentation-board gutters or decorative cell frames here.
+    raw_atlas('tiles', ['grass_top', 'dirt', 'edge_left', 'edge_right', 'platform',
+                        'lilypad', 'cattail', 'lantern'],
+              clean_lake_tiles(), (16, 16), manifest)
+    raw_atlas('tiles2', tile2_labels, clean_world_tiles(), (16, 16), manifest)
+    raw_atlas('hub', hub_labels, clean_hub_tiles(), (16, 16), manifest)
 
     # Preserve the already-approved Swan extraction metadata.
     manifest["swan"].update({"draw_w": 40, "draw_h": 36, "anchor": [20, 34], "attachments": {"head": [32.5, 6], "feet": [20, 34]}})

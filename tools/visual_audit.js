@@ -30,6 +30,14 @@ async function level(page, id) {
 
   await page.goto(`${BASE}/index.html`);
   await page.waitForTimeout(1000);
+  const metrics = await page.evaluate(() => {
+    const canvas = document.querySelector('#game').getBoundingClientRect();
+    const cabinet = document.querySelector('#cabinet').getBoundingClientRect();
+    return { canvas: [Math.round(canvas.width), Math.round(canvas.height)],
+             cabinet: [Math.round(cabinet.width), Math.round(cabinet.height)],
+             pixelsPerGamePixel: +(canvas.width / T.VIEW_W).toFixed(2) };
+  });
+  console.log('Render metrics:', JSON.stringify(metrics));
   await snap(page, "01-title");
   await page.keyboard.press("Enter");
   await page.waitForTimeout(400);
